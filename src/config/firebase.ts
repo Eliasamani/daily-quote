@@ -1,8 +1,13 @@
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeAuth, getAuth } from 'firebase/auth';
+
+// @ts-ignore
+import { getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
 
 const {
   FIREBASE_API_KEY,
@@ -12,7 +17,7 @@ const {
   FIREBASE_MESSAGING_SENDER_ID,
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
-} = Constants.expoConfig?.extra || {};
+} = Constants.expoConfig?.extra ?? {};
 
 const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,
@@ -24,5 +29,9 @@ const firebaseConfig = {
   measurementId: FIREBASE_MEASUREMENT_ID,
 };
 
-initializeApp(firebaseConfig);
-export const auth = getAuth();
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+
+export const auth =
+  Platform.OS !== 'web'
+    ? initializeAuth(app, { persistence: getReactNativePersistence(AsyncStorage) })
+    : getAuth(app);
