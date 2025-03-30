@@ -1,27 +1,37 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 import { auth } from './src/config/firebase';
 import HomeView from './src/views/HomeView';
 import LoginView from './src/views/LoginView';
 import RegisterView from './src/views/RegisterView';
-import AuthUser from './src/models/AuthUser';
+import { store, RootState, AppDispatch } from './src/store/store';
+import { setUser, toggleRegister } from './src/store/slices/authSlice';
 
-export default function App() {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [showRegister, setShowRegister] = useState(false);
+const AppContent = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { user, showRegister } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, u => {
-      setUser(u ? { uid: u.uid, email: u.email } : null);
+      dispatch(setUser(u ? { uid: u.uid, email: u.email } : null));
     });
     return unsubscribe;
-  }, []);
+  }, [dispatch]);
 
   if (user) return <HomeView />;
 
   return showRegister ? (
-    <RegisterView onSwitchToLogin={() => setShowRegister(false)} />
+    <RegisterView onSwitchToLogin={() => dispatch(toggleRegister(false))} />
   ) : (
-    <LoginView onSwitchToRegister={() => setShowRegister(true)} />
+    <LoginView onSwitchToRegister={() => dispatch(toggleRegister(true))} />
+  );
+};
+
+export default function App() {
+  return (
+    <Provider store={store}>
+      <AppContent />
+    </Provider>
   );
 }
