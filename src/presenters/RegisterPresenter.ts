@@ -1,34 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../store/store";
-import { loginUser, setGuest } from "../store/slices/authSlice";
+import { AppDispatch, RootState } from "../store/store";
+import { registerUser } from "../store/slices/authSlice";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AuthStackParamList } from "../navigation/AuthNavigator";
 
-export function useLoginPresenter() {
+export function useRegisterPresenter() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch<AppDispatch>();
-  const { error, loading, user } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { error, loading } = useSelector((state: RootState) => state.auth);
   const navigation =
-    useNavigation<StackNavigationProp<AuthStackParamList, "Login">>();
+    useNavigation<StackNavigationProp<AuthStackParamList, "Register">>();
 
   const onEmailChange = (text: string) => setEmail(text);
   const onPasswordChange = (text: string) => setPassword(text);
 
-  const onLogin = () => {
-    dispatch(loginUser({ email, password }));
+  const onRegister = () => {
+    dispatch(registerUser({ email, password }));
   };
 
-  const onExploreAsGuest = () => {
-    dispatch(setGuest(true));
-  };
-
-  const onNavigateToRegister = () => {
-    navigation.navigate("Register");
+  const onNavigateToLogin = () => {
+    navigation.navigate("Login");
   };
 
   return {
@@ -38,8 +32,7 @@ export function useLoginPresenter() {
     loading,
     onEmailChange,
     onPasswordChange,
-    onLogin,
-    onExploreAsGuest,
-    onNavigateToRegister,
+    onRegister,
+    onNavigateToLogin,
   };
 }
