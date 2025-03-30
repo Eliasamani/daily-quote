@@ -5,21 +5,28 @@ import ExploreQuotesScreen from "../screens/ExploreQuotesScreen";
 import CreateQuotesScreen from "../screens/CreateQuotesScreen";
 import SavedQuotesScreen from "../screens/SavedQuotesScreen";
 import MyQuotesScreen from "../screens/MyQuotesScreen";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
+import { setGuest } from "../store/slices/authSlice";
 
 const Tab = createBottomTabNavigator();
 
 // A custom tab bar button that disables touch when needed
 const CustomTabBarButton = (props: any & { disabled: boolean }) => {
   const { disabled, onPress, children } = props;
+  const dispatch = useDispatch();
+
   if (disabled) {
     return (
       <TouchableOpacity
         onPress={() =>
           Alert.alert(
             "Authentication Required",
-            "Please log in to use this feature"
+            "You need to log in to access this feature. Would you like to go to the login screen?",
+            [
+              { text: "No", style: "cancel" }, // User stays on current screen
+              { text: "Yes", onPress: () => dispatch(setGuest(false)) }, // Dispatches action to switch to auth flow
+            ]
           )
         }
         style={{ opacity: 0.5 }}

@@ -10,17 +10,10 @@ const Stack = createStackNavigator();
 
 export default function RootNavigator() {
   const { user, guest } = useSelector((state: RootState) => state.auth);
-  const initialRouteName = Boolean(user) || guest ? "Main" : "Auth";
 
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName={initialRouteName}
-        screenOptions={{ headerShown: false }}
-      >
-        <Stack.Screen name="Auth" component={AuthNavigator} />
-        <Stack.Screen name="Main" component={MainStack} />
-      </Stack.Navigator>
+      {user || guest ? <MainStack /> : <AuthNavigator />}
     </NavigationContainer>
   );
 }
