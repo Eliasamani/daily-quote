@@ -1,4 +1,4 @@
-const processFetchReq = async (url: string, options?: RequestInit): Promise<any> => {
+const processFetchReq = async <T>(url: string, options?: RequestInit): Promise<T> => {
     const ts = Date.now();
     const method = options?.method || "GET";
 

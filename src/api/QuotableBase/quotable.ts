@@ -1,12 +1,6 @@
-import { processFetchReq } from "../../utils";
+import { processFetchReq, generateQueryStrFrom } from "../../utils";
 
 const QUOTABLE_BASE_LINK = "https://api.quotable.io";
-
-// Helper function to convert params into a query string
-const generateQueryStrFrom = (params: Record<string, any>): string => {
-    const query = new URLSearchParams(params).toString();
-    return query ? `?${query}` : "";
-};
 
 export type Quote = {
     _id: string;
@@ -21,5 +15,5 @@ export const getQuotes = async (params?: Record<string, any>): Promise<Quote[]> 
     if (params) {
         url += generateQueryStrFrom(params);
     }
-    return processFetchReq(url);
+    return processFetchReq<Quote[]>(url);
 };
