@@ -8,13 +8,14 @@ import AuthNavigator from "./src/navigation/AuthNavigator";
 import MainStack from "./src/navigation/MainStack";
 import { store, RootState, AppDispatch } from "./src/store/store";
 import { setUser } from "./src/store/slices/authSlice";
+import CreateQuotesScreen from "./src/screens/CreateQuotesScreen";
 
 const Stack = createStackNavigator();
 
 const RootNavigator = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user, guest } = useSelector((state: RootState) => state.auth);
-
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       dispatch(setUser(u ? { uid: u.uid, email: u.email } : null));
@@ -33,6 +34,7 @@ const RootNavigator = () => {
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />
         )}
+        <Stack.Screen name="CreateQuotes" component={CreateQuotesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
