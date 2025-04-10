@@ -10,13 +10,13 @@ import { initializeAuth, getAuth } from 'firebase/auth';
 import { getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
 
 const {
-  FIREBASE_API_KEY,
-  FIREBASE_AUTH_DOMAIN,
-  FIREBASE_PROJECT_ID,
-  FIREBASE_STORAGE_BUCKET,
-  FIREBASE_MESSAGING_SENDER_ID,
-  FIREBASE_APP_ID,
-  FIREBASE_MEASUREMENT_ID,
+  FIREBASE_API_KEY="AIzaSyD1RMCoyz3w80rOQUMB2zXTpkD3ae8cRTE",
+  FIREBASE_AUTH_DOMAIN="dailyquote-568e4.firebaseapp.com",
+  FIREBASE_PROJECT_ID="dailyquote-568e4",
+  FIREBASE_STORAGE_BUCKET="dailyquote-568e4.firebasestorage.app",
+  FIREBASE_MESSAGING_SENDER_ID="626767378710",
+  FIREBASE_APP_ID="1:626767378710:web:fa7d72a836cf276573b837",
+  FIREBASE_MEASUREMENT_ID="G-7X9NHRTM2L",
 } = Constants.expoConfig?.extra ?? {};
 
 const firebaseConfig = {
