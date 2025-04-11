@@ -1,33 +1,19 @@
-<<<<<<< HEAD
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-=======
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
->>>>>>> Salah
+import { View, Text, StyleSheet, TextInput, Button } from "react-native";
 import Header from "../components/Header";
 import { useCreateQuotesPresenter } from "../presenters/CreateQuotesPresenter";
 
 export default function CreateQuotesScreen() {
-<<<<<<< HEAD
-  const { onLogout, onLogoPress } = useCreateQuotesPresenter();
-=======
   const { onLogout, onLogoPress, submitQuote } = useCreateQuotesPresenter();
-
   const [quote, setQuote] = useState("");
   const [author, setAuthor] = useState("");
   const [tags, setTags] = useState("");
 
-  const handleSubmit = () => {
-    if (!quote || !author) {
-      Alert.alert("Missing fields", "Please fill in both quote and author.");
-      return;
-    }
-
-    const tagArray = tags.split(",").map((t) => t.trim());
-    submitQuote(quote, author, tagArray);
+  const onSubmit = () => {
+    // Convert comma-separated tags to an array
+    const tagsArray = tags.split(",").map(t => t.trim());
+    submitQuote(quote, author, tagsArray);
   };
->>>>>>> Salah
 
   return (
     <View style={styles.container}>
@@ -38,34 +24,26 @@ export default function CreateQuotesScreen() {
         onAuthButtonPress={onLogout}
       />
       <View style={styles.content}>
-<<<<<<< HEAD
-        <Text style={styles.description}>
-          Create your own inspiring quotes.
-        </Text>
-=======
         <Text style={styles.description}>Create your own inspiring quotes.</Text>
-
         <TextInput
           style={styles.input}
-          placeholder="Quote text"
+          placeholder="Enter quote"
           value={quote}
           onChangeText={setQuote}
         />
         <TextInput
           style={styles.input}
-          placeholder="Author"
+          placeholder="Enter author"
           value={author}
           onChangeText={setAuthor}
         />
         <TextInput
           style={styles.input}
-          placeholder="Tags (comma separated)"
+          placeholder="Enter tags (comma separated)"
           value={tags}
           onChangeText={setTags}
         />
-
-        <Button title="Submit Quote" onPress={handleSubmit} />
->>>>>>> Salah
+        <Button title="Submit Quote" onPress={onSubmit} />
       </View>
     </View>
   );
@@ -73,23 +51,13 @@ export default function CreateQuotesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f9f9" },
-  content: {
-    flex: 1,
-    padding: 16,
-    justifyContent: "center",
-<<<<<<< HEAD
-    alignItems: "center",
-  },
-  description: { fontSize: 18, textAlign: "center" },
-=======
-  },
+  content: { flex: 1, padding: 16, justifyContent: "center" },
   description: { fontSize: 18, textAlign: "center", marginBottom: 16 },
   input: {
+    height: 40,
+    borderColor: "#ddd",
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    padding: 10,
     marginBottom: 12,
+    paddingHorizontal: 8,
   },
->>>>>>> Salah
 });

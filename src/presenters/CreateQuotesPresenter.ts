@@ -1,55 +1,49 @@
+// src/presenters/CreateQuotesPresenter.ts
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../store/store";
 import { logoutUser } from "../store/slices/authSlice";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { useNavigation, StackNavigationProp } from "@react-navigation/native";
+import { auth } from "../config/firebase";
+import { db } from "../config/firebase"; // import Firestore instance
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
 type DashboardStackParamList = {
   CreateQuotes: undefined;
 };
 
 export function useCreateQuotesPresenter() {
   const dispatch = useDispatch<AppDispatch>();
-  const navigation =
-    useNavigation<
-      StackNavigationProp<DashboardStackParamList, "CreateQuotes">
-    >();
+  const navigation = useNavigation<StackNavigationProp<DashboardStackParamList, "CreateQuotes">>();
 
+  // Navigation and logout functions
   const onLogout = () => dispatch(logoutUser());
   const onLogoPress = () => navigation.goBack();
 
-  return { onLogout, onLogoPress };
-}
-
-import { useNavigation } from '@react-navigation/native';
-import { auth } from '../config/firebase';
-
-export function useCreateQuotesPresenter() {
-  const navigation = useNavigation();
-
-  const submitQuote = async (quote, author, tags) => {
+  // Submit quote function using Firestore
+  const submitQuote = async (quote: string, author: string, tags: string[]) => {
     const userId = auth.currentUser?.uid;
+
+    console.log("auth.currentUser:", auth.currentUser);
+
 
     if (!userId) {
       alert("User not authenticated");
       return;
     }
 
-    const newQuote = { content: quote, author, tags, createdBy: userId };
+    // Build your quote object. You can add more fields like a timestamp.
+    const newQuote = {
+      content: quote,
+      author,
+      tags,
+      createdBy: userId,
+      createdAt: serverTimestamp(), // use Firestore's server timestamp
+    };
 
     try {
-      const response = await fetch("https://<your-cloud-function-url>/api/quotes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newQuote),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to submit quote");
-      }
-
-      alert("Quote submitted!");
+      // Add the document to the "quotes" collection
+      const docRef = await addDoc(collection(db, "quotes"), newQuote);
+      alert("Quote submitted with ID: " + docRef.id);
       navigation.goBack();
     } catch (error) {
       console.error("Error submitting quote:", error);
@@ -57,7 +51,5 @@ export function useCreateQuotesPresenter() {
     }
   };
 
-  return {
-    submitQuote,
-  };
+  return { onLogout, onLogoPress, submitQuote };
 }
