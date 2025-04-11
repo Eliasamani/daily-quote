@@ -4,8 +4,7 @@ import { AppDispatch, RootState } from "../store/store";
 import { logoutUser, setGuest } from "../store/slices/authSlice";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { ExploreQuotesModel, Quote } from '../models/ExploreQuotesModel';
-import { Tag } from '../store/slices/quote'; // Adjust path as needed
+import { ExploreQuotesModel, Quote } from '../models/ExploreQuotesModel.ts';
 
 type DashboardStackParamList = {
   ExploreQuotes: undefined;
@@ -26,9 +25,8 @@ export function useExploreQuotesPresenter() {
   const [maxLength, setMaxLength] = useState('');
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [tags, setTags] = useState<Tag[]>([]);
 
-  // Authentication handlers
+  // Authentication handlers (keep your existing code)
   const onLogout = () => dispatch(logoutUser());
   const onAuthButtonPress = guest ? () => dispatch(setGuest(false)) : onLogout;
   const onLogoPress = () => navigation.goBack();
@@ -36,18 +34,8 @@ export function useExploreQuotesPresenter() {
   // Initialize and fetch some data when component mounts
   useEffect(() => {
     fetchInitialQuotes();
-    fetchTags();
   }, []);
 
-  const fetchTags = async () => {
-    try {
-      const allTags = await ExploreQuotesModel.getTags();
-      setTags(allTags);
-    } catch (error) {
-      console.error("Error fetching tags:", error);
-    }
-  };
-  
   const fetchInitialQuotes = async () => {
     setIsLoading(true);
     try {
@@ -92,12 +80,12 @@ export function useExploreQuotesPresenter() {
   };
 
   return {
-    // Auth state and handlers
+    // Auth state and handlers (from your existing code)
     guest,
     onAuthButtonPress,
     onLogoPress,
     
-    // Quote search state and handlers
+    // Quote search state and handlers (new)
     search,
     setSearch,
     genre,
@@ -108,7 +96,6 @@ export function useExploreQuotesPresenter() {
     setMaxLength,
     quotes,
     isLoading,
-    tags, // Add tags to the returned object
     onSearchPress,
     onRandomQuotePress,
   };
