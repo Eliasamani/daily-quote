@@ -43,7 +43,8 @@ export function useCreateQuotesPresenter() {
     try {
       // Add the document to the "quotes" collection
       const docRef = await addDoc(collection(db, "quotes"), newQuote);
-      alert("Quote submitted with ID: " + docRef.id);
+      alert("Your quote has been submitted successfully!");
+
       navigation.goBack();
     } catch (error) {
       console.error("Error submitting quote:", error);
