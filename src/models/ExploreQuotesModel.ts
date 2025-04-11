@@ -1,4 +1,8 @@
+import { Tag } from '../store/slices/quote'; // Adjust path as needed
+
 // API endpoints
+
+
 const API_BASE_URL = 'https://api.quotable.io';
 
 // Types
@@ -8,6 +12,7 @@ export interface Quote {
   author: string;
   length: number;
   genre?: string; 
+  tags?: string[];
 }
 
 interface SearchParams {
@@ -22,6 +27,7 @@ export class ExploreQuotesModel {
   static async getQuotes(): Promise<Quote[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/quotes?limit=20`);
+      if (!response.ok) throw new Error('Failed to fetch quotes');
       const data = await response.json();
       return data.results;
     } catch (error) {

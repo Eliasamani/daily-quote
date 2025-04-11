@@ -6,11 +6,12 @@ import {
   Button,
   StyleSheet,
   FlatList,
+  ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
 import Header from "../components/Header";
 import { useExploreQuotesPresenter } from "../presenters/ExploreQuotesPresenter";
-import { Picker } from "@react-native-picker/picker"; // npm install this if not installed
+import { Picker } from "@react-native-picker/picker";
 
 export default function ExploreQuotesScreen() {
   const {
@@ -20,6 +21,7 @@ export default function ExploreQuotesScreen() {
     search,
     genre,
     setGenre,
+    setSearch,
     minLength,
     maxLength,
     setMinLength,
@@ -27,6 +29,8 @@ export default function ExploreQuotesScreen() {
     onSearchPress,
     onRandomQuotePress,
     quotes,
+    isLoading,
+    tags,
   } = useExploreQuotesPresenter();
 
   return (
@@ -54,9 +58,9 @@ export default function ExploreQuotesScreen() {
             onValueChange={(itemValue) => setGenre(itemValue)}
           >
             <Picker.Item label="All" value="" />
-            <Picker.Item label="Inspirational" value="inspirational" />
-            <Picker.Item label="Wisdom" value="wisdom" />
-            {/* Add more genres */}
+            {tags && tags.map((tag) => (
+              <Picker.Item key={tag._id} label={tag.name} value={tag.slug} />
+            ))}
           </Picker>
         </View>
 
