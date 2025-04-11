@@ -1,8 +1,6 @@
 import { Tag } from '../store/slices/quote'; // Adjust path as needed
 
 // API endpoints
-
-
 const API_BASE_URL = 'https://api.quotable.io';
 
 // Types
@@ -35,6 +33,17 @@ export class ExploreQuotesModel {
       return [];
     }
   }
+  
+  static async getTags(): Promise<Tag[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tags`);
+      if (!response.ok) throw new Error('Failed to fetch tags');
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching tags:", error);
+      return [];
+    }
+  }
 
   // Search with filters
   static async searchQuotes(params: SearchParams): Promise<Quote[]> {
@@ -45,8 +54,11 @@ export class ExploreQuotesModel {
       if (params.genre) query.append('tags', params.genre); // API uses `tags`
       if (params.minLength) query.append('minLength', params.minLength.toString());
       if (params.maxLength) query.append('maxLength', params.maxLength.toString());
+      
+      query.append('limit', '20'); // Add a reasonable limit
 
       const response = await fetch(`${API_BASE_URL}/quotes/search?${query.toString()}`);
+      if (!response.ok) throw new Error('Failed to search quotes');
       const data = await response.json();
       return data.results || [];
     } catch (error) {
@@ -59,8 +71,8 @@ export class ExploreQuotesModel {
   static async getRandomQuote(): Promise<Quote | null> {
     try {
       const response = await fetch(`${API_BASE_URL}/random`);
-      const data = await response.json();
-      return data;
+      if (!response.ok) throw new Error('Failed to fetch random quote');
+      return await response.json();
     } catch (error) {
       console.error("Error fetching random quote:", error);
       return null;

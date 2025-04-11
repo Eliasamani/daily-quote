@@ -6,8 +6,8 @@ import {
   Button,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import Header from "../components/Header";
 import { useExploreQuotesPresenter } from "../presenters/ExploreQuotesPresenter";
@@ -19,9 +19,9 @@ export default function ExploreQuotesScreen() {
     onAuthButtonPress,
     onLogoPress,
     search,
+    setSearch, // Add this
     genre,
     setGenre,
-    setSearch,
     minLength,
     maxLength,
     setMinLength,
@@ -30,7 +30,7 @@ export default function ExploreQuotesScreen() {
     onRandomQuotePress,
     quotes,
     isLoading,
-    tags,
+    tags, // Add this
   } = useExploreQuotesPresenter();
 
   return (
@@ -89,25 +89,35 @@ export default function ExploreQuotesScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.listHeader}>
-          <Text style={styles.tableHeader}>Quote</Text>
-          <Text style={styles.tableHeader}>Author</Text>
-          <Text style={styles.tableHeader}>Length</Text>
-        </View>
-
-        <FlatList
-          data={quotes}
-          keyExtractor={(item) => item._id}
-          renderItem={({ item }) => (
-            <View style={styles.quoteRow}>
-              <Text style={styles.cell}>{item.content}</Text>
-              <Text style={styles.cell}>{item.author}</Text>
-              <Text style={styles.cell}>{item.length}</Text>
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />
+        ) : (
+          <>
+            <View style={styles.listHeader}>
+              <Text style={styles.tableHeader}>Quote</Text>
+              <Text style={styles.tableHeader}>Author</Text>
+              <Text style={styles.tableHeader}>Length</Text>
             </View>
-          )}
-        />
-      </View>
 
+            <FlatList
+              data={quotes}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <View style={styles.quoteRow}>
+                  <Text style={styles.cell}>{item.content}</Text>
+                  <Text style={styles.cell}>{item.author}</Text>
+                  <Text style={styles.cell}>{item.length}</Text>
+                </View>
+              )}
+              ListEmptyComponent={
+                <Text style={styles.emptyText}>
+                  No quotes found. Try different search criteria.
+                </Text>
+              }
+            />
+          </>
+        )}
+      </View>
     </View>
   );
 }
@@ -159,10 +169,6 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
   },
   cell: { flex: 1 },
-  footer: {
-    backgroundColor: "#a98888",
-    padding: 12,
-    alignItems: "center",
-  },
-  footerText: { color: "#fff" },
+  loader: { marginTop: 30 },
+  emptyText: { textAlign: "center", marginTop: 30, color: "#666" },
 });
