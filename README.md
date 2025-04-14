@@ -94,48 +94,44 @@ The app handles two main data types:
 ---
 
 ## Project File Structure
-
-A simplified file tree is as follows:
 daily-quote/
-├── .expo/                 
-│   └── ...                # Expo-specific configuration files
-├── .expo-shared/          
-│   └── ...                # Shared Expo metadata/configuration
-├── assets/                
-│   ├── adaptive-icon.png  # Adaptive icon for different screen sizes
-│   ├── favicon.png        # Favicon image
-│   ├── icon.png           # App icon
-│   └── splash.png         # Splash screen image
-├── node_modules/          
-│   └── ...                # Node.js dependencies (auto-generated)
-├── src/                   
-│   ├── components/        # Reusable UI components (e.g., buttons, headers)
-│   │   └── ...            
-│   ├── contexts/          # React context providers for state management
-│   │   └── ...            
-│   ├── firebase/          # Firebase initialization and configuration files
-│   │   └── ...            
-│   ├── navigation/        # Navigation configuration (navigators for routes)
+├── .expo/
+│   └── ... # Expo-specific configuration files generated during development
+├── .expo-shared/
+│   └── ... # Shared Expo metadata and configuration files
+├── assets/
+│   ├── adaptive-icon.png # Adaptive icon for different screen sizes
+│   ├── favicon.png # Favicon image
+│   ├── icon.png # App icon
+│   └── splash.png # Splash screen image
+├── node_modules/
+│   └── ... # Node.js dependencies (auto-generated)
+├── src/
+│   ├── components/ # Reusable UI components (e.g., buttons, headers, footers)
+│   │   └── ...
+│   ├── contexts/ # React context providers for state management
+│   │   └── ...
+│   ├── firebase/ # Firebase initialization and configuration files
+│   │   └── ...
+│   ├── navigation/ # Navigation configuration files (navigators for different routes)
 │   │   ├── DailyQuoteNavigator.ts
 │   │   ├── ExploreQuotesNavigator.ts
 │   │   └── QuoteDetailsNavigator.ts
-│   ├── screens/           # Screen components representing app views
+│   ├── screens/ # Screen components representing views (e.g., Home, One Day Quote Selector)
 │   │   ├── Home.tsx
 │   │   ├── OneDayQuoteSelector.ts
-│   │   └── ...            # Other screens (e.g., RateQuote.ts)
-│   ├── store/             # Redux or similar state management store files
-│   │   └── ...            
-│   ├── utils/             # Helper functions and utility modules
-│   │   └── ...            
-│   ├── index.ts           # Main entry point for the app source code
-│   └── ...                # Additional source files, if any
-├── .gitignore             # Files to ignore in Git
-├── app.json               # Expo configuration file
-├── babel.config.js        # Babel configuration for JavaScript/TypeScript
-├── firebase.json          # Firebase configuration (hosting, functions, etc.)
-├── package-lock.json      # Auto-generated lock file for npm packages
-├── package.json           # Project metadata, dependencies, and scripts
-├── README.md              # Project documentation (this file)
-└── tsconfig.json          # TypeScript configuration file
-
-
+│   │   └── ... # Additional screens (e.g., rate quote screen, profile screen)
+│   ├── store/ # Redux or similar state-management store files
+│   │   └── ...
+│   ├── utils/ # Helper functions and utility modules
+│   │   └── ...
+│   ├── index.ts # Main app entry point for source code
+│   └── ... # Additional source files, if any
+├── .gitignore # Lists files and folders to ignore in Git
+├── app.json # Expo configuration file
+├── babel.config.js # Babel configuration for JavaScript/TypeScript transpiling
+├── firebase.json # Firebase configuration for hosting, functions, etc.
+├── package-lock.json # Auto-generated lock file for npm packages
+├── package.json # Project metadata, dependencies, scripts, and commands
+├── README.md # Project documentation
+└── tsconfig.json # TypeScript configuration file
