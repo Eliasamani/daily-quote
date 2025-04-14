@@ -94,44 +94,47 @@ The app handles two main data types:
 ---
 
 ## Project File Structure
+
+```plaintext
 daily-quote/
 ├── .expo/
-│   └── ... # Expo-specific configuration files generated during development
+│   └── ...               # Expo-specific configuration files generated during development
 ├── .expo-shared/
-│   └── ... # Shared Expo metadata and configuration files
+│   └── ...               # Shared Expo metadata and configuration
 ├── assets/
 │   ├── adaptive-icon.png # Adaptive icon for different screen sizes
-│   ├── favicon.png # Favicon image
-│   ├── icon.png # App icon
-│   └── splash.png # Splash screen image
+│   ├── favicon.png       # Favicon image
+│   ├── icon.png          # App icon
+│   └── splash.png        # Splash screen image
 ├── node_modules/
-│   └── ... # Node.js dependencies (auto-generated)
+│   └── ...               # Node.js dependencies (auto-generated)
 ├── src/
-│   ├── components/ # Reusable UI components (e.g., buttons, headers, footers)
+│   ├── components/       # Reusable UI components (e.g., buttons, headers, footers)
 │   │   └── ...
-│   ├── contexts/ # React context providers for state management
+│   ├── contexts/         # React context providers for state management
 │   │   └── ...
-│   ├── firebase/ # Firebase initialization and configuration files
+│   ├── firebase/         # Firebase initialization and config
 │   │   └── ...
-│   ├── navigation/ # Navigation configuration files (navigators for different routes)
+│   ├── navigation/       # Navigation config (navigators for routes)
 │   │   ├── DailyQuoteNavigator.ts
 │   │   ├── ExploreQuotesNavigator.ts
 │   │   └── QuoteDetailsNavigator.ts
-│   ├── screens/ # Screen components representing views (e.g., Home, One Day Quote Selector)
+│   ├── screens/          # Screen components (e.g., Home, OneDayQuoteSelector)
 │   │   ├── Home.tsx
 │   │   ├── OneDayQuoteSelector.ts
-│   │   └── ... # Additional screens (e.g., rate quote screen, profile screen)
-│   ├── store/ # Redux or similar state-management store files
+│   │   └── ...           # Additional screens (e.g., rate quote, profile)
+│   ├── store/            # Redux or similar state-management files
 │   │   └── ...
-│   ├── utils/ # Helper functions and utility modules
+│   ├── utils/            # Helper functions, utility modules
 │   │   └── ...
-│   ├── index.ts # Main app entry point for source code
-│   └── ... # Additional source files, if any
-├── .gitignore # Lists files and folders to ignore in Git
-├── app.json # Expo configuration file
-├── babel.config.js # Babel configuration for JavaScript/TypeScript transpiling
-├── firebase.json # Firebase configuration for hosting, functions, etc.
-├── package-lock.json # Auto-generated lock file for npm packages
-├── package.json # Project metadata, dependencies, scripts, and commands
-├── README.md # Project documentation
-└── tsconfig.json # TypeScript configuration file
+│   ├── index.ts          # Main app entry point for source code
+│   └── ...               # Additional source files, if any
+├── .gitignore            # Files/folders to ignore in Git
+├── app.json              # Expo configuration file
+├── babel.config.js       # Babel config for JS/TS transpiling
+├── firebase.json         # Firebase config (hosting, functions, etc.)
+├── package-lock.json     # Auto-generated lock file for npm packages
+├── package.json          # Project metadata, dependencies, scripts
+├── README.md             # Project documentation
+└── tsconfig.json         # TypeScript configuration file
+
