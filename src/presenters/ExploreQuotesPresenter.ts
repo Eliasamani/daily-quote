@@ -5,7 +5,7 @@ import { logoutUser, setGuest } from "../store/slices/authSlice";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { ExploreQuotesModel, Quote } from '../models/ExploreQuotesModel';
-import { Tag } from '../store/slices/quote'; // Adjust path as needed
+import { Tag } from '../store/slices/quote';
 
 type DashboardStackParamList = {
   ExploreQuotes: undefined;
@@ -19,7 +19,6 @@ export function useExploreQuotesPresenter() {
     >();
   const { guest } = useSelector((state: RootState) => state.auth);
   
-  // Quote search state
   const [search, setSearch] = useState('');
   const [genre, setGenre] = useState('');
   const [minLength, setMinLength] = useState('');
@@ -28,12 +27,10 @@ export function useExploreQuotesPresenter() {
   const [isLoading, setIsLoading] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
 
-  // Authentication handlers
   const onLogout = () => dispatch(logoutUser());
   const onAuthButtonPress = guest ? () => dispatch(setGuest(false)) : onLogout;
   const onLogoPress = () => navigation.goBack();
 
-  // Initialize and fetch some data when component mounts
   useEffect(() => {
     fetchInitialQuotes();
     fetchTags();
@@ -81,23 +78,55 @@ export function useExploreQuotesPresenter() {
 
   const onRandomQuotePress = async () => {
     setIsLoading(true);
+    
+    setSearch('');
+    setGenre('');
+    setMinLength('');
+    setMaxLength('');
+    
     try {
-      const randomQuote = await ExploreQuotesModel.getRandomQuote();
-      setQuotes(randomQuote ? [randomQuote] : []);
+      let attempts = 0;
+      let randomQuote = null;
+      
+      while (attempts < 3 && randomQuote === null) {
+        attempts++;
+        try {
+          console.log(`Attempting to fetch random quote (attempt ${attempts})`);
+          randomQuote = await ExploreQuotesModel.getRandomQuote();
+          
+          if (randomQuote === null && attempts < 3) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } catch (err) {
+          console.error(`Attempt ${attempts} failed:`, err);
+          if (attempts < 3) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
+      
+      if (randomQuote) {
+        console.log("Successfully fetched random quote:", randomQuote);
+        setQuotes([randomQuote]);
+      } else {
+        console.error("Failed to fetch random quote after multiple attempts");
+        setQuotes([]);
+        
+      }
     } catch (error) {
-      console.error("Error fetching random quote:", error);
+      console.error("Error in random quote handler:", error);
+      setQuotes([]);
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return {
-    // Auth state and handlers
     guest,
     onAuthButtonPress,
     onLogoPress,
     
-    // Quote search state and handlers
     search,
     setSearch,
     genre,
@@ -108,7 +137,7 @@ export function useExploreQuotesPresenter() {
     setMaxLength,
     quotes,
     isLoading,
-    tags, // Add tags to the returned object
+    tags,
     onSearchPress,
     onRandomQuotePress,
   };

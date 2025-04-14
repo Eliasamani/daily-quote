@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,18 +8,22 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import Header from "../components/Header";
 import { useExploreQuotesPresenter } from "../presenters/ExploreQuotesPresenter";
 import { Picker } from "@react-native-picker/picker";
 
 export default function ExploreQuotesScreen() {
+  const [randomQuoteLoading, setRandomQuoteLoading] = useState(false);
+  const [randomQuoteError, setRandomQuoteError] = useState(null);
+  
   const {
     guest,
     onAuthButtonPress,
     onLogoPress,
     search,
-    setSearch, // Add this
+    setSearch,
     genre,
     setGenre,
     minLength,
@@ -30,8 +34,37 @@ export default function ExploreQuotesScreen() {
     onRandomQuotePress,
     quotes,
     isLoading,
-    tags, // Add this
+    tags,
   } = useExploreQuotesPresenter();
+
+  const handleRandomQuote = async () => {
+    try {
+      setRandomQuoteLoading(true);
+      setRandomQuoteError(null);
+      await onRandomQuotePress();
+    } catch (error) {
+      console.error("Random quote error:", error);
+      setRandomQuoteError(error.message || "Failed to fetch random quote");
+      Alert.alert(
+        "Error", 
+        "Failed to fetch random quote. Please try again later."
+      );
+    } finally {
+      setRandomQuoteLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      setRandomQuoteError(null);
+    };
+  }, []);
+
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -58,10 +91,13 @@ export default function ExploreQuotesScreen() {
             onValueChange={(itemValue) => setGenre(itemValue)}
           >
             <Picker.Item label="All" value="" />
-            {tags &&
+            {tags && tags.length > 0 ? (
               tags.map((tag) => (
                 <Picker.Item key={tag._id} label={tag.name} value={tag.slug} />
-              ))}
+              ))
+            ) : (
+              <Picker.Item label="Loading..." value="" />
+            )}
           </Picker>
         </View>
 
@@ -84,13 +120,29 @@ export default function ExploreQuotesScreen() {
         </View>
 
         <View style={styles.row}>
-          <Button title="Search" onPress={onSearchPress} />
-          <TouchableOpacity onPress={onRandomQuotePress}>
-            <Text style={styles.randomQuote}>...or fetch a random quote</Text>
+          <Button 
+            title="Search" 
+            onPress={onSearchPress} 
+            disabled={isLoading}
+          />
+          <TouchableOpacity 
+            onPress={handleRandomQuote}
+            disabled={randomQuoteLoading}
+            style={styles.randomButton}
+          >
+            <Text style={styles.randomQuote}>
+              {randomQuoteLoading ? "Loading..." : "...or fetch a random quote"}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {isLoading ? (
+        {randomQuoteError && (
+          <Text style={styles.errorText}>
+            Error fetching random quote. Please try again.
+          </Text>
+        )}
+
+        {isLoading || randomQuoteLoading ? (
           <ActivityIndicator
             size="large"
             color="#0000ff"
@@ -106,7 +158,7 @@ export default function ExploreQuotesScreen() {
 
             <FlatList
               data={quotes}
-              keyExtractor={(item) => item._id}
+              keyExtractor={(item) => item._id || Math.random().toString()}
               renderItem={({ item }) => (
                 <View style={styles.quoteRow}>
                   <Text style={styles.cell}>{item.content}</Text>
@@ -116,7 +168,7 @@ export default function ExploreQuotesScreen() {
               )}
               ListEmptyComponent={
                 <Text style={styles.emptyText}>
-                  No quotes found. Try different search criteria.
+                  No quotes found. Try different search criteria or fetch a random quote.
                 </Text>
               }
             />
@@ -156,6 +208,9 @@ const styles = StyleSheet.create({
     color: "blue",
     textDecorationLine: "underline",
   },
+  randomButton: {
+    marginLeft: 10,
+  },
   listHeader: {
     flexDirection: "row",
     backgroundColor: "#999",
@@ -176,4 +231,5 @@ const styles = StyleSheet.create({
   cell: { flex: 1 },
   loader: { marginTop: 30 },
   emptyText: { textAlign: "center", marginTop: 30, color: "#666" },
+  errorText: { color: "red", textAlign: "center", marginTop: 10 },
 });
