@@ -1,33 +1,23 @@
 import { Tag } from "../store/slices/quote"; // Adjust path as needed
 
-// API endpoints
 const API_BASE_URL = "https://api.quotable.kurokeita.dev/api";
 
-// Types
-export interface Quote {
-  _id: string;
-  content: string;
-  author: string;
-  length: number;
-  genre?: string;
-  tags?: string[];
-}
-
-interface SearchParams {
-  query?: string;
-  genre?: string;
-  minLength?: number;
-  maxLength?: number;
-}
-
 export class ExploreQuotesModel {
-  // Fetch all quotes (first page for now)
-  static async getQuotes(): Promise<Quote[]> {
+  static async getQuotes(limit: number = 25): Promise<Quote[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/quotes?limit=10`);
-      if (!response.ok) throw new Error("Failed to fetch quotes");
+      const response = await fetch(`${API_BASE_URL}/quotes?limit=${limit}`);
+      if (!response.ok) throw new Error(`Failed to fetch quotes: ${response.status}`);
+      
       const data = await response.json();
-      return data.results;
+      console.log("Quotes API response:", data); 
+      
+      if (!data || (!data.results && !Array.isArray(data))) {
+        return [];
+      }
+      
+      const quotes = Array.isArray(data) ? data : data.results || [];
+      
+      return quotes;
     } catch (error) {
       console.error("Error fetching quotes:", error);
       return [];
@@ -51,39 +41,54 @@ export class ExploreQuotesModel {
       const query = new URLSearchParams();
 
       if (params.query) query.append("query", params.query);
-      if (params.genre) query.append("tags", params.genre); // API uses `tags`
-      if (params.minLength)
-        query.append("minLength", params.minLength.toString());
-      if (params.maxLength)
-        query.append("maxLength", params.maxLength.toString());
+      if (params.tag) query.append("tag", params.tag);
+      if (params.author) query.append("author", params.author);
+      if (params.minLength) query.append("minLength", params.minLength.toString());
+      if (params.maxLength) query.append("maxLength", params.maxLength.toString());
+      query.append("limit", "25"); 
 
-      query.append("limit", "25"); // Add a reasonable limit
-
-      const response = await fetch(
-        `${API_BASE_URL}/quotes?${query.toString()}`
-      );
-      if (!response.ok) throw new Error("Failed to search quotes");
+      const url = `${API_BASE_URL}/quotes?${query.toString()}`;
+      console.log("Search URL:", url);
+      
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to search quotes: ${response.status}`);
+      
       const data = await response.json();
-      return data.results || [];
+      console.log("Search API response:", data);
+      
+      // Handle possible response formats
+      const quotes = Array.isArray(data) ? data : data.results || [];
+      
+      return quotes;
     } catch (error) {
       console.error("Error searching quotes:", error);
       return [];
     }
   }
 
-  // Fetch a random quote
-  static async getRandomQuote(): Promise<Quote | null> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/quotes/random`);
-      if (!response.ok) throw new Error("Failed to fetch random quote");
-      return await response.json();
-    } catch (error) {
-      console.error("Error fetching random quote:", error);
-      return null;
+static async getRandomQuote(): Promise<Quote | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quotes/random`);
+    if (!response.ok) throw new Error("Failed to fetch random quote");
+    const data = await response.json();
+    
+    if (data.quote) {
+      return {
+        _id: data.quote.id,
+        content: data.quote.content,
+        author: data.quote.author.name,
+        length: data.quote.content.length,
+        tags: data.quote.tags.map((tag: any) => tag.name)
+      };
     }
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching random quote:", error);
+    return null;
   }
+}
 
-  // Save favorite (stub since real API needs auth backend)
   static async saveQuote(quoteId: string, token: string): Promise<boolean> {
     try {
       console.log(`Quote ${quoteId} saved to favorites (mock implementation)`);
