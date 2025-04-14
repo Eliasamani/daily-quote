@@ -20,9 +20,9 @@ DailyQuote is a mobile app built with React Native, Firebase, and TypeScript tha
 
 ## Team Members
 
-- Elias Amani Rudäng (Canvas ID: 95366)
-- Salahudin Abdi Salah (Canvas ID: 124507)
-- Marvin Haidari (Canvas ID: 124482)
+- Elias Amani Rudäng 
+- Salahudin Abdi Salah
+- Marvin Haidari 
 
 ---
 
