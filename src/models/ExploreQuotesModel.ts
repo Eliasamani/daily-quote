@@ -1,4 +1,4 @@
-import { Tag } from "../store/slices/quote";
+import { Tag } from "../store/slices/quote"; // Adjust path as needed
 
 const API_BASE_URL = "https://api.quotable.kurokeita.dev/api";
 
@@ -35,6 +35,7 @@ export class ExploreQuotesModel {
     }
   }
 
+  // Search with filters
   static async searchQuotes(params: SearchParams): Promise<Quote[]> {
     try {
       const query = new URLSearchParams();
@@ -55,6 +56,7 @@ export class ExploreQuotesModel {
       const data = await response.json();
       console.log("Search API response:", data);
       
+      // Handle possible response formats
       const quotes = Array.isArray(data) ? data : data.results || [];
       
       return quotes;
@@ -63,53 +65,29 @@ export class ExploreQuotesModel {
       return [];
     }
   }
-  static async getRandomQuote(): Promise<Quote | null> {
-    try {
-      const cacheBuster = new Date().getTime();
-      const response = await fetch(`${API_BASE_URL}/quotes/random?t=${cacheBuster}`);
-      
-      if (!response.ok) {
-        console.error(`Failed to fetch random quote: ${response.status}`);
-        throw new Error(`Failed to fetch random quote: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log("Random quote API response:", data);
-      
-      if (data && data.quote) {
-        return {
-          _id: data.quote.id || data.quote._id || `temp-${Date.now()}`,
-          content: data.quote.content,
-          author: data.quote.author?.name || data.quote.author || "Unknown",
-          length: data.quote.content?.length || 0,
-          tags: data.quote.tags?.map((tag: any) => tag.name || tag) || []
-        };
-      } else if (data && data.content) {
-        return {
-          _id: data._id || data.id || `temp-${Date.now()}`,
-          content: data.content,
-          author: data.author?.name || data.author || "Unknown",
-          length: data.content?.length || 0,
-          tags: data.tags?.map((tag: any) => tag.name || tag) || []
-        };
-      } else if (Array.isArray(data) && data.length > 0) {
-        const quote = data[0];
-        return {
-          _id: quote._id || quote.id || `temp-${Date.now()}`,
-          content: quote.content,
-          author: quote.author?.name || quote.author || "Unknown",
-          length: quote.content?.length || 0,
-          tags: quote.tags?.map((tag: any) => tag.name || tag) || []
-        };
-      }
-      
-      console.error("Unexpected API response format for random quote:", data);
-      return null;
-    } catch (error) {
-      console.error("Error fetching random quote:", error);
-      return null;
+
+static async getRandomQuote(): Promise<Quote | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/quotes/random`);
+    if (!response.ok) throw new Error("Failed to fetch random quote");
+    const data = await response.json();
+    
+    if (data.quote) {
+      return {
+        _id: data.quote.id,
+        content: data.quote.content,
+        author: data.quote.author.name,
+        length: data.quote.content.length,
+        tags: data.quote.tags.map((tag: any) => tag.name)
+      };
     }
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching random quote:", error);
+    return null;
   }
+}
 
   static async saveQuote(quoteId: string, token: string): Promise<boolean> {
     try {
