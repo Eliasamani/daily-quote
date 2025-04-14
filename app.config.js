@@ -1,5 +1,5 @@
 // app.config.js
-import './.env';
+import 'dotenv/config';
 
 export default {
     expo: {
