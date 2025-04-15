@@ -34,24 +34,22 @@ DailyQuote delivers tailored daily quotes based on a user’s mood or interests.
 - Create and submit their own quotes
 - Rate submitted quotes
 
-All data is managed via Firebase, with a custom API built using Firebase Cloud Functions handling quote retrieval and interactions.
+All data is managed via Firebase.
 
 ---
 
 ## Frameworks & Technologies
 
-- **React Native** – Building the mobile app interface.
+- **React Native**
 - **Firebase**
-  - Authentication
-  - Firestore for data persistence
-  - Cloud Functions for hosting the custom API
-- **TypeScript** – 
+- **TypeScript** 
 
 ---
 
 ## API Usage
+API that is used is open sourced and can be found here:
+https://api.quotable.kurokeita.dev/
 
-The custom API (via Firebase Cloud Functions) includes the following endpoints:
 
 - **GET** `/api/quotes/random?category={category}`  
   Fetches a random quote by category.
@@ -96,45 +94,64 @@ The app handles two main data types:
 ## Project File Structure
 
 ```plaintext
-daily-quote/
-├── .expo/
-│   └── ...               # Expo-specific configuration files generated during development
-├── .expo-shared/
-│   └── ...               # Shared Expo metadata and configuration
-├── assets/
-│   ├── adaptive-icon.png # Adaptive icon for different screen sizes
-│   ├── favicon.png       # Favicon image
-│   ├── icon.png          # App icon
-│   └── splash.png        # Splash screen image
-├── node_modules/
-│   └── ...               # Node.js dependencies (auto-generated)
-├── src/
-│   ├── components/       # Reusable UI components (e.g., buttons, headers, footers)
-│   │   └── ...
-│   ├── contexts/         # React context providers for state management
-│   │   └── ...
-│   ├── firebase/         # Firebase initialization and config
-│   │   └── ...
-│   ├── navigation/       # Navigation config (navigators for routes)
-│   │   ├── DailyQuoteNavigator.ts
-│   │   ├── ExploreQuotesNavigator.ts
-│   │   └── QuoteDetailsNavigator.ts
-│   ├── screens/          # Screen components (e.g., Home, OneDayQuoteSelector)
-│   │   ├── Home.tsx
-│   │   ├── OneDayQuoteSelector.ts
-│   │   └── ...           # Additional screens (e.g., rate quote, profile)
-│   ├── store/            # Redux or similar state-management files
-│   │   └── ...
-│   ├── utils/            # Helper functions, utility modules
-│   │   └── ...
-│   ├── index.ts          # Main app entry point for source code
-│   └── ...               # Additional source files, if any
-├── .gitignore            # Files/folders to ignore in Git
-├── app.json              # Expo configuration file
-├── babel.config.js       # Babel config for JS/TS transpiling
-├── firebase.json         # Firebase config (hosting, functions, etc.)
-├── package-lock.json     # Auto-generated lock file for npm packages
-├── package.json          # Project metadata, dependencies, scripts
-├── README.md             # Project documentation
-└── tsconfig.json         # TypeScript configuration file
-
+.expo
+.firebase
+.github
+└── workflows
+assets
+dist
+node_modules
+src
+├── api
+│   ├── QuotableBase
+│   │   └── quotable.ts
+│   └── index.ts
+├── components
+│   └── Header.tsx
+├── config
+│   └── firebase.ts
+├── models
+│   ├── AuthUser.ts
+│   └── ExploreQuotesModel.ts
+├── navigation
+│   ├── AuthNavigator.tsx
+│   ├── CreateQuotes.tsx
+│   ├── DashboardNavigator.tsx
+│   ├── MainStack.tsx
+│   └── RootNavigator.tsx
+├── presenters
+│   ├── CreateQuotesPresenter.ts
+│   ├── ExploreQuotesPresenter.ts
+│   ├── HomePresenter.ts
+│   ├── LoginPresenter.ts
+│   ├── MyQuotesPresenter.ts
+│   ├── RegisterPresenter.ts
+│   └── SavedQuotesPresenter.ts
+├── screens
+│   ├── CreateQuotesScreen.tsx
+│   ├── ExploreQuotesScreen.tsx
+│   ├── HomeScreen.tsx
+│   ├── LoginScreen.tsx
+│   ├── MyQuotesScreen.tsx
+│   ├── RegisterScreen.tsx
+│   └── SavedQuotesScreen.tsx
+├── store
+│   ├── slices
+│   │   ├── authSlice.ts
+│   │   └── quote.ts
+│   └── store.ts
+└── utils
+    ├── GenerateQueryStringFrom.ts
+    ├── index.ts
+    └── ProcessFetchReq.ts
+.env
+.firebaserc
+.gitignore
+app.config.js
+App.tsx
+firebase.json
+index.ts
+package-lock.json
+package.json
+README.md
+tsconfig.json
