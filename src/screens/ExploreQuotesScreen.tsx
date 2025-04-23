@@ -1,4 +1,5 @@
 import React from "react";
+import QuoteDisplay from "../components/QuoteDisplay";
 import {
   View,
   Text,
@@ -12,6 +13,7 @@ import {
 import Header from "../components/Header";
 import { useExploreQuotesPresenter } from "../presenters/ExploreQuotesPresenter";
 import { Picker } from "@react-native-picker/picker";
+import { Quote } from "../models/ExploreQuotesModel";
 
 export default function ExploreQuotesScreen() {
   const {
@@ -19,7 +21,7 @@ export default function ExploreQuotesScreen() {
     onAuthButtonPress,
     onLogoPress,
     search,
-    setSearch, // Add this
+    setSearch,
     genre,
     setGenre,
     minLength,
@@ -30,7 +32,9 @@ export default function ExploreQuotesScreen() {
     onRandomQuotePress,
     quotes,
     isLoading,
-    tags, // Add this
+    tags,
+    selectedQuote,
+    onSelectQuote,
   } = useExploreQuotesPresenter();
 
   return (
@@ -49,6 +53,12 @@ export default function ExploreQuotesScreen() {
           value={search}
           onChangeText={(text) => setSearch(text)}
         />
+        
+        {/* Featured Quote Display */}
+        <QuoteDisplay 
+          quote={selectedQuote} 
+          isLoading={isLoading} 
+        />
 
         <View style={styles.row}>
           <Text style={styles.label}>Genre:</Text>
@@ -58,10 +68,12 @@ export default function ExploreQuotesScreen() {
             onValueChange={(itemValue) => setGenre(itemValue)}
           >
             <Picker.Item label="All" value="" />
-            {tags &&
-              tags.map((tag) => (
-                <Picker.Item key={tag._id} label={tag.name} value={tag.slug} />
-              ))}
+            {tags && tags.map((tag) => (
+                <Picker.Item key={tag.id}
+                             label={tag.name}
+                             value={tag.slug}
+                />
+             ))}
           </Picker>
         </View>
 
@@ -108,11 +120,13 @@ export default function ExploreQuotesScreen() {
               data={quotes}
               keyExtractor={(item) => item._id}
               renderItem={({ item }) => (
-                <View style={styles.quoteRow}>
-                  <Text style={styles.cell}>{item.content}</Text>
-                  <Text style={styles.cell}>{item.author}</Text>
-                  <Text style={styles.cell}>{item.length}</Text>
-                </View>
+                <TouchableOpacity onPress={() => onSelectQuote(item)}>
+                  <View style={styles.quoteRow}>
+                    <Text style={styles.cell}>{item.content}</Text>
+                    <Text style={styles.cell}>{item.author}</Text>
+                    <Text style={styles.cell}>{item.length}</Text>
+                  </View>
+                </TouchableOpacity>
               )}
               ListEmptyComponent={
                 <Text style={styles.emptyText}>

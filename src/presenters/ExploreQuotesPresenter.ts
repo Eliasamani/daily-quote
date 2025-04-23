@@ -20,6 +20,7 @@ export function useExploreQuotesPresenter() {
   const { guest } = useSelector((state: RootState) => state.auth);
   
   // Quote search state
+  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [search, setSearch] = useState('');
   const [genre, setGenre] = useState('');
   const [minLength, setMinLength] = useState('');
@@ -27,7 +28,7 @@ export function useExploreQuotesPresenter() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
-
+    console.log(tags)
   // Authentication handlers
   const onLogout = () => dispatch(logoutUser());
   const onAuthButtonPress = guest ? () => dispatch(setGuest(false)) : onLogout;
@@ -38,6 +39,10 @@ export function useExploreQuotesPresenter() {
     fetchInitialQuotes();
     fetchTags();
   }, []);
+  const onSelectQuote = (quote: Quote) => {
+    setSelectedQuote(quote);
+  };
+
 
   const fetchTags = async () => {
     try {
@@ -108,8 +113,10 @@ export function useExploreQuotesPresenter() {
     setMaxLength,
     quotes,
     isLoading,
-    tags, // Add tags to the returned object
+    tags,
     onSearchPress,
     onRandomQuotePress,
+    selectedQuote,
+    onSelectQuote,
   };
 }

@@ -8,7 +8,6 @@ export interface Quote {
   _id: string;
   content: string;
   author: string;
-  length: number;
   genre?: string;
   tags?: string[];
 }
@@ -76,7 +75,20 @@ export class ExploreQuotesModel {
     try {
       const response = await fetch(`${API_BASE_URL}/quotes/random`);
       if (!response.ok) throw new Error("Failed to fetch random quote");
-      return await response.json();
+      
+      const quote = await response.json();
+      console.log("Random quote API response:", quote);
+      
+      // Create a properly formatted quote object with safer property access
+      return {
+        _id: quote._id || String(Math.random()),
+        content: quote.content,
+        // Handle author being either a string or an object with a name property
+        author: typeof quote.author === 'object' ? 
+          (quote.author?.name || "Unknown") : 
+          (quote.author || "Unknown"),
+          tags: quote.tags || []
+      };
     } catch (error) {
       console.error("Error fetching random quote:", error);
       return null;
