@@ -115,4 +115,34 @@ export class ExploreQuotesModel {
     console.log(`Quote ${quoteId} saved to favorites (mock)`);
     return true;
   }
+
+  /** Fetch a single quote by its ID */
+  static async getQuoteById(id: string): Promise<Quote | null> {
+    try {
+      const url = `${API_BASE_URL}/quotes?id=${encodeURIComponent(id)}`;
+      const response = await fetch(url);
+      if (!response.ok)
+        throw new Error(`Failed to fetch quote ${id}: ${response.status}`);
+      const data = await response.json();
+
+      // The API returns an object with a `results` array (or raw array)
+      const raw: any[] = Array.isArray(data)
+        ? data
+        : data.results || data.data || [];
+
+      if (raw.length === 0) return null;
+
+      const q = raw[0];
+      return {
+        id: q._id ?? q.id,
+        content: q.content,
+        author: typeof q.author === "string" ? q.author : q.author.name,
+        length: q.content.length,
+        tags: Array.isArray(q.tags) ? q.tags : [],
+      };
+    } catch (err) {
+      console.error("Error fetching quote by ID:", err);
+      return null;
+    }
+  }
 }

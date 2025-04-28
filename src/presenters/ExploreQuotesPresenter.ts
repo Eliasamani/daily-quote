@@ -51,7 +51,6 @@ export function useExploreQuotesPresenter() {
     setIsLoading(true);
     try {
       const result = await ExploreQuotesModel.getQuotes();
-      console.log("♻️ Quotes payload:", result);
       setQuotes(result); // <- now the array of Quote
     } catch (err) {
       console.error("Error fetching initial quotes:", err);
@@ -70,7 +69,6 @@ export function useExploreQuotesPresenter() {
         maxLength: maxLength ? parseInt(maxLength, 10) : undefined,
       };
       const result = await ExploreQuotesModel.searchQuotes(params);
-      console.log("♻️ Search payload:", result);
       setQuotes(result);
     } catch (err) {
       console.error("Error searching quotes:", err);
@@ -83,7 +81,6 @@ export function useExploreQuotesPresenter() {
     setIsLoading(true);
     try {
       const rand = await ExploreQuotesModel.getRandomQuote();
-      console.log("♻️ Random payload:", rand);
       setQuotes(rand ? [rand] : []);
     } catch (err) {
       console.error("Error fetching random quote:", err);

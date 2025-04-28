@@ -2,12 +2,14 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice";
 import quoteMetaReducer from "./slices/quoteMetaSlice";
+import savedQuotesReducer from "./slices/savedQuotesSlice";
 import { useDispatch } from "react-redux";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     quoteMeta: quoteMetaReducer,
+    savedQuotes: savedQuotesReducer,
   },
 });
 

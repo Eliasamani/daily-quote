@@ -1,7 +1,16 @@
 // src/store/slices/quoteMetaSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import firestore from "@react-native-firebase/firestore";
-import auth from "@react-native-firebase/auth";
+import { auth, db } from "../../config/firebase";
+import {
+  doc,
+  getDoc,
+  runTransaction,
+  collection,
+  addDoc,
+  updateDoc,
+  serverTimestamp,
+  increment,
+} from "firebase/firestore";
 
 export interface QuoteMeta {
   id: string;
@@ -22,11 +31,13 @@ const initialState: QuoteMetaState = {
   loadingIds: [],
 };
 
+// Fetch metadata for a given quote
 export const fetchQuoteMeta = createAsyncThunk<QuoteMeta, string>(
   "quoteMeta/fetch",
   async (quoteId) => {
-    const doc = await firestore().collection("quoteMeta").doc(quoteId).get();
-    if (!doc.exists) {
+    const ref = doc(db, "quoteMeta", quoteId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
       return {
         id: quoteId,
         likeCount: 0,
@@ -35,19 +46,20 @@ export const fetchQuoteMeta = createAsyncThunk<QuoteMeta, string>(
         savedBy: [],
       };
     }
-    return doc.data() as QuoteMeta;
+    return snap.data() as QuoteMeta;
   }
 );
 
+// Toggle a like on/off
 export const toggleLike = createAsyncThunk<void, string>(
   "quoteMeta/toggleLike",
   async (quoteId) => {
-    const uid = auth().currentUser!.uid;
-    const ref = firestore().collection("quoteMeta").doc(quoteId);
+    const uid = auth.currentUser!.uid;
+    const ref = doc(db, "quoteMeta", quoteId);
 
-    await firestore().runTransaction(async (tx) => {
+    await runTransaction(db, async (tx) => {
       const snap = await tx.get(ref);
-      const meta: QuoteMeta = snap.exists
+      const meta: QuoteMeta = snap.exists()
         ? (snap.data() as QuoteMeta)
         : {
             id: quoteId,
@@ -71,36 +83,34 @@ export const toggleLike = createAsyncThunk<void, string>(
   }
 );
 
+// Add a comment, and increment the parent commentCount
 export const addComment = createAsyncThunk<
   void,
   { quoteId: string; text: string }
 >("quoteMeta/addComment", async ({ quoteId, text }) => {
-  const uid = auth().currentUser!.uid;
-  const commentsRef = firestore()
-    .collection("quoteMeta")
-    .doc(quoteId)
-    .collection("comments");
-  await commentsRef.add({
+  const uid = auth.currentUser!.uid;
+  const commentsRef = collection(db, "quoteMeta", quoteId, "comments");
+  await addDoc(commentsRef, {
     userId: uid,
     text,
-    createdAt: firestore.FieldValue.serverTimestamp(),
+    createdAt: serverTimestamp(),
   });
-  // increment parent commentCount
-  await firestore()
-    .collection("quoteMeta")
-    .doc(quoteId)
-    .set({ commentCount: firestore.FieldValue.increment(1) }, { merge: true });
+
+  // increment the commentCount on the parent document
+  const parentRef = doc(db, "quoteMeta", quoteId);
+  await updateDoc(parentRef, { commentCount: increment(1) });
 });
 
+// Toggle saving a quote on/off
 export const toggleSave = createAsyncThunk<void, string>(
   "quoteMeta/toggleSave",
   async (quoteId) => {
-    const uid = auth().currentUser!.uid;
-    const ref = firestore().collection("quoteMeta").doc(quoteId);
+    const uid = auth.currentUser!.uid;
+    const ref = doc(db, "quoteMeta", quoteId);
 
-    await firestore().runTransaction(async (tx) => {
+    await runTransaction(db, async (tx) => {
       const snap = await tx.get(ref);
-      const meta: QuoteMeta = snap.exists
+      const meta: QuoteMeta = snap.exists()
         ? (snap.data() as QuoteMeta)
         : {
             id: quoteId,
@@ -115,14 +125,7 @@ export const toggleSave = createAsyncThunk<void, string>(
         ? meta.savedBy.filter((u) => u !== uid)
         : [uid, ...meta.savedBy];
 
-      tx.set(
-        ref,
-        {
-          ...meta,
-          savedBy: newSavedBy,
-        },
-        { merge: true }
-      );
+      tx.set(ref, { ...meta, savedBy: newSavedBy });
     });
   }
 );
@@ -138,7 +141,7 @@ const slice = createSlice({
       })
       .addCase(toggleLike.fulfilled, (state, action) => {
         const id = action.meta.arg;
-        const uid = auth().currentUser!.uid;
+        const uid = auth.currentUser!.uid;
         const m = state.entities[id];
         if (m) {
           if (m.likedBy.includes(uid)) {
@@ -156,7 +159,7 @@ const slice = createSlice({
       })
       .addCase(toggleSave.fulfilled, (state, action) => {
         const id = action.meta.arg;
-        const uid = auth().currentUser!.uid;
+        const uid = auth.currentUser!.uid;
         const m = state.entities[id];
         if (m) {
           if (m.savedBy.includes(uid)) {

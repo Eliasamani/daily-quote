@@ -1,3 +1,4 @@
+// src/components/QuoteCard.tsx
 import React from "react";
 import {
   View,
@@ -9,24 +10,17 @@ import {
 import Icon from "react-native-vector-icons/FontAwesome";
 
 export interface QuoteCardProps {
-  /** The text of the quote */
   quote: string;
-  /** The author of the quote */
   author: string;
-  /** Whether the quote is liked */
   liked?: boolean;
-  /** Whether the quote is saved */
   saved?: boolean;
-  /** Number of likes */
   likeCount?: number;
-  /** Number of comments */
   commentCount?: number;
-  /** Callback for like action */
   onLike?: (event: GestureResponderEvent) => void;
-  /** Callback for comment action */
   onComment?: (event: GestureResponderEvent) => void;
-  /** Callback for save action */
   onSave?: (event: GestureResponderEvent) => void;
+  /** when true, all actions are shown as disabled (grayed out) */
+  disabled?: boolean;
 }
 
 const QuoteCard: React.FC<QuoteCardProps> = ({
@@ -39,8 +33,16 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
   onLike,
   onComment,
   onSave,
+  disabled = false,
 }) => {
   const hitSlopArea = { top: 8, bottom: 8, left: 8, right: 8 };
+
+  // If disabled, show grey; else normal
+  const heartColor = disabled ? "#ccc" : liked ? "red" : "#555";
+  const commentColor = disabled ? "#ccc" : "#555";
+  const bookmarkColor = disabled ? "#ccc" : saved ? "#007AFF" : "#555";
+  const textColor = disabled ? "#ccc" : "#555";
+
   return (
     <View style={styles.card}>
       <Text style={styles.quoteText} accessibilityRole="text">
@@ -60,9 +62,11 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
             <Icon
               name={liked ? "heart" : "heart-o"}
               size={20}
-              color={liked ? "red" : "#555"}
+              color={heartColor}
             />
-            <Text style={styles.actionText}>{likeCount}</Text>
+            <Text style={[styles.actionText, { color: textColor }]}>
+              {likeCount}
+            </Text>
           </View>
         </Pressable>
 
@@ -73,8 +77,10 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
           accessibilityRole="button"
         >
           <View style={styles.actionButton}>
-            <Icon name="comment-o" size={20} color="#555" />
-            <Text style={styles.actionText}>{commentCount}</Text>
+            <Icon name="comment-o" size={20} color={commentColor} />
+            <Text style={[styles.actionText, { color: textColor }]}>
+              {commentCount}
+            </Text>
           </View>
         </Pressable>
 
@@ -87,7 +93,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
           <Icon
             name={saved ? "bookmark" : "bookmark-o"}
             size={20}
-            color={saved ? "#007AFF" : "#555"}
+            color={bookmarkColor}
           />
         </Pressable>
       </View>
@@ -133,6 +139,7 @@ const styles = StyleSheet.create({
   actionText: {
     marginLeft: 4,
     fontSize: 14,
+    // default color; overridden inline when disabled
     color: "#555",
   },
 });
