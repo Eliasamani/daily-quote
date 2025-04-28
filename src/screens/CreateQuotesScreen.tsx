@@ -1,18 +1,52 @@
+// src/screens/CreateQuotesScreen.tsx
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, Button } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Button,
+  Alert,
+  Platform,
+} from "react-native";
 import Header from "../components/Header";
 import { useCreateQuotesPresenter } from "../presenters/CreateQuotesPresenter";
 
 export default function CreateQuotesScreen() {
-  const { onLogout, onLogoPress, submitQuote } = useCreateQuotesPresenter();
+  const { onLogout, onLogoPress, submitQuote, guest } =
+    useCreateQuotesPresenter();
   const [quote, setQuote] = useState("");
   const [author, setAuthor] = useState("");
   const [tags, setTags] = useState("");
 
   const onSubmit = () => {
-    // Convert comma-separated tags to an array
-    const tagsArray = tags.split(",").map(t => t.trim());
-    submitQuote(quote, author, tagsArray);
+    if (guest) {
+      const msg = "Please log in to create quotes.";
+      if (Platform.OS === "android") {
+        // Android toast or fallback to alert
+        Alert.alert(msg);
+      } else {
+        Alert.alert("Login required", msg);
+      }
+      return;
+    }
+
+    if (!quote.trim() || !author.trim()) {
+      Alert.alert("Please provide both quote text and author.");
+      return;
+    }
+
+    const tagsArray = tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    submitQuote(quote.trim(), author.trim(), tagsArray);
+
+    // Clear inputs
+    setQuote("");
+    setAuthor("");
+    setTags("");
   };
 
   return (
@@ -24,7 +58,9 @@ export default function CreateQuotesScreen() {
         onAuthButtonPress={onLogout}
       />
       <View style={styles.content}>
-        <Text style={styles.description}>Create your own inspiring quotes.</Text>
+        <Text style={styles.description}>
+          Create your own inspiring quotes.
+        </Text>
         <TextInput
           style={styles.input}
           placeholder="Enter quote"
@@ -59,5 +95,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 12,
     paddingHorizontal: 8,
+    backgroundColor: "#fff",
   },
 });

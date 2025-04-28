@@ -3,6 +3,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice";
 import quoteMetaReducer from "./slices/quoteMetaSlice";
 import savedQuotesReducer from "./slices/savedQuotesSlice";
+import createdQuotesReducer from "./slices/createdQuotesSlice";
 import { useDispatch } from "react-redux";
 
 export const store = configureStore({
@@ -10,6 +11,7 @@ export const store = configureStore({
     auth: authReducer,
     quoteMeta: quoteMetaReducer,
     savedQuotes: savedQuotesReducer,
+    createdQuotes: createdQuotesReducer,
   },
 });
 

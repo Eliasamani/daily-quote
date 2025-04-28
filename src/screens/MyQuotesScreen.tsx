@@ -1,10 +1,109 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  FlatList,
+  Alert,
+} from "react-native";
+import { useAppDispatch } from "../store/store";
+import { toggleLike, toggleSave } from "../store/slices/quoteMetaSlice";
+import {
+  saveQuoteWithData,
+  unsaveQuoteWithData,
+} from "../store/slices/savedQuotesSlice";
 import Header from "../components/Header";
+import QuoteCard from "../components/Quote";
+import CommentsModal from "../components/CommentsModal";
+import type { Quote } from "../models/ExploreQuotesModel";
+import type { QuoteMeta } from "../store/slices/quoteMetaSlice";
 import { useMyQuotesPresenter } from "../presenters/MyQuotesPresenter";
 
 export default function MyQuotesScreen() {
-  const { onLogout, onLogoPress } = useMyQuotesPresenter();
+  const dispatch = useAppDispatch();
+  const {
+    onLogout,
+    onLogoPress,
+    myQuotes,
+    isLoading,
+    metaEntities,
+    uid,
+    guest,
+  } = useMyQuotesPresenter();
+
+  const [commentModalQuoteId, setCommentModalQuoteId] = useState<string | null>(
+    null
+  );
+
+  const handleLike = (id: string) => {
+    if (guest) {
+      Alert.alert("Please log in to like quotes.");
+    } else {
+      dispatch(toggleLike(id));
+    }
+  };
+
+  const handleSave = (item: Quote, saved: boolean) => {
+    if (guest) {
+      Alert.alert("Please log in to save quotes.");
+      return;
+    }
+    dispatch(toggleSave(item.id));
+    if (!saved) dispatch(saveQuoteWithData(item));
+    else dispatch(unsaveQuoteWithData(item.id));
+  };
+
+  const handleComment = (id: string) => {
+    if (guest) {
+      Alert.alert("Please log in to comment.");
+    } else {
+      setCommentModalQuoteId(id);
+    }
+  };
+
+  let content: React.ReactNode;
+  if (isLoading) {
+    content = <ActivityIndicator size="large" />;
+  } else if (myQuotes.length === 0) {
+    content = (
+      <Text style={styles.emptyText}>You haven’t created any quotes yet.</Text>
+    );
+  } else {
+    content = (
+      <FlatList
+        data={myQuotes}
+        keyExtractor={(q) => q.id}
+        renderItem={({ item }) => {
+          const meta: QuoteMeta = metaEntities[item.id] || {
+            id: item.id,
+            likeCount: 0,
+            likedBy: [],
+            commentCount: 0,
+            savedBy: [],
+          };
+          const liked = uid ? meta.likedBy.includes(uid) : false;
+          const saved = uid ? meta.savedBy.includes(uid) : false;
+          return (
+            <View style={styles.cardWrapper}>
+              <QuoteCard
+                quote={item.content}
+                author={item.author}
+                liked={liked}
+                saved={saved}
+                likeCount={meta.likeCount}
+                commentCount={meta.commentCount}
+                onLike={() => handleLike(item.id)}
+                onComment={() => handleComment(item.id)}
+                onSave={() => handleSave(item, saved)}
+                disabled={guest}
+              />
+            </View>
+          );
+        }}
+      />
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -14,20 +113,26 @@ export default function MyQuotesScreen() {
         authButtonText="Logout"
         onAuthButtonPress={onLogout}
       />
-      <View style={styles.content}>
-        <Text style={styles.description}>Quotes that you have created.</Text>
-      </View>
+      <View style={styles.content}>{content}</View>
+      {commentModalQuoteId && (
+        <CommentsModal
+          quoteId={commentModalQuoteId}
+          visible={true}
+          onClose={() => setCommentModalQuoteId(null)}
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f9f9" },
-  content: {
-    flex: 1,
-    padding: 16,
-    justifyContent: "center",
-    alignItems: "center",
+  content: { flex: 1, padding: 16 },
+  emptyText: {
+    textAlign: "center",
+    marginTop: 40,
+    color: "#666",
+    fontSize: 18,
   },
-  description: { fontSize: 18, textAlign: "center" },
+  cardWrapper: { marginBottom: 8 },
 });

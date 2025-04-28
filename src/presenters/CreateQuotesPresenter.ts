@@ -1,11 +1,12 @@
 // src/presenters/CreateQuotesPresenter.ts
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "../store/store";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../store/store";
 import { logoutUser } from "../store/slices/authSlice";
-import { useNavigation, StackNavigationProp } from "@react-navigation/native";
-import { auth } from "../config/firebase";
-import { db } from "../config/firebase"; // import Firestore instance
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useNavigation } from "@react-navigation/native";
+import type { StackNavigationProp } from "@react-navigation/stack";
+import { auth, db } from "../config/firebase";
+import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { Alert } from "react-native";
 
 type DashboardStackParamList = {
   CreateQuotes: undefined;
@@ -13,44 +14,56 @@ type DashboardStackParamList = {
 
 export function useCreateQuotesPresenter() {
   const dispatch = useDispatch<AppDispatch>();
-  const navigation = useNavigation<StackNavigationProp<DashboardStackParamList, "CreateQuotes">>();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<DashboardStackParamList, "CreateQuotes">
+    >();
+  // Grab the guest flag from Redux
+  const guest = useSelector((s: RootState) => s.auth.guest);
 
-  // Navigation and logout functions
   const onLogout = () => dispatch(logoutUser());
   const onLogoPress = () => navigation.goBack();
 
-  // Submit quote function using Firestore
-  const submitQuote = async (quote: string, author: string, tags: string[]) => {
+  const submitQuote = async (
+    content: string,
+    author: string,
+    tags: string[]
+  ) => {
     const userId = auth.currentUser?.uid;
-
-    console.log("auth.currentUser:", auth.currentUser);
-
-
     if (!userId) {
-      alert("User not authenticated");
+      Alert.alert("User not authenticated");
       return;
     }
 
-    // Build your quote object. You can add more fields like a timestamp.
-    const newQuote = {
-      content: quote,
-      author,
-      tags,
-      createdBy: userId,
-      createdAt: serverTimestamp(), // use Firestore's server timestamp
-    };
-
     try {
-      // Add the document to the "quotes" collection
-      const docRef = await addDoc(collection(db, "quotes"), newQuote);
-      alert("Your quote has been submitted successfully!");
+      // 1) write to top-level /quotes
+      const quotesRef = collection(db, "quotes");
+      const newRef = doc(quotesRef);
+      await setDoc(newRef, {
+        content,
+        author,
+        tags,
+        createdBy: userId,
+        createdAt: serverTimestamp(),
+      });
+
+      // 2) snapshot under users/{uid}/createdQuotes/{id}
+      const userRef = doc(db, "users", userId, "createdQuotes", newRef.id);
+      await setDoc(userRef, {
+        id: newRef.id,
+        content,
+        author,
+        tags,
+        createdBy: userId,
+        createdAt: serverTimestamp(),
+      });
 
       navigation.goBack();
-    } catch (error) {
-      console.error("Error submitting quote:", error);
-      alert("Failed to submit quote");
+    } catch (err) {
+      console.error("Error submitting quote:", err);
+      Alert.alert("Failed to submit quote");
     }
   };
 
-  return { onLogout, onLogoPress, submitQuote };
+  return { onLogout, onLogoPress, submitQuote, guest };
 }
