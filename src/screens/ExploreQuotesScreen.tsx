@@ -1,37 +1,65 @@
-import React from "react";
+// src/screens/ExploreQuotesScreen.tsx
+
+import React, { useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
   Button,
-  StyleSheet,
-  FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  FlatList,
+  StyleSheet,
 } from "react-native";
-import Header from "../components/Header";
-import { useExploreQuotesPresenter } from "../presenters/ExploreQuotesPresenter";
 import { Picker } from "@react-native-picker/picker";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "../store/store";
+import {
+  fetchQuoteMeta,
+  toggleLike,
+  addComment,
+  toggleSave,
+  QuoteMeta,
+} from "../store/slices/quoteMetaSlice";
+import Header from "../components/Header";
+import QuoteCard from "../components/Quote";
+import { useExploreQuotesPresenter } from "../presenters/ExploreQuotesPresenter";
 
 export default function ExploreQuotesScreen() {
+  const dispatch = useDispatch<AppDispatch>();
   const {
     guest,
     onAuthButtonPress,
     onLogoPress,
     search,
-    setSearch, // Add this
+    setSearch,
     genre,
     setGenre,
     minLength,
-    maxLength,
     setMinLength,
+    maxLength,
     setMaxLength,
     onSearchPress,
     onRandomQuotePress,
+    tags,
     quotes,
     isLoading,
-    tags, // Add this
   } = useExploreQuotesPresenter();
+
+  // grab our metadata from Redux
+  const metaEntities = useSelector(
+    (s: RootState) => s.quoteMeta?.entities ?? {}
+  );
+  const uid = useSelector((s: RootState) => s.auth.user?.uid);
+
+  // whenever we get new quotes, ensure their meta is loaded
+  useEffect(() => {
+    quotes.forEach((q) => {
+      if (!metaEntities[q.id]) {
+        dispatch(fetchQuoteMeta(q.id));
+      }
+    });
+  }, [quotes, metaEntities, dispatch]);
 
   return (
     <View style={styles.container}>
@@ -43,28 +71,30 @@ export default function ExploreQuotesScreen() {
       />
 
       <View style={styles.content}>
+        {/* Search input */}
         <TextInput
           style={styles.input}
           placeholder="Search for quotes..."
           value={search}
-          onChangeText={(text) => setSearch(text)}
+          onChangeText={setSearch}
         />
 
+        {/* Genre picker */}
         <View style={styles.row}>
           <Text style={styles.label}>Genre:</Text>
           <Picker
             selectedValue={genre}
             style={styles.picker}
-            onValueChange={(itemValue) => setGenre(itemValue)}
+            onValueChange={(val) => setGenre(val)}
           >
-            <Picker.Item label="All" value="" />
-            {tags &&
-              tags.map((tag) => (
-                <Picker.Item key={tag._id} label={tag.name} value={tag.slug} />
-              ))}
+            <Picker.Item key="all" label="All" value="" />
+            {tags.map((tag) => (
+              <Picker.Item key={tag.id} label={tag.name} value={tag.name} />
+            ))}
           </Picker>
         </View>
 
+        {/* Length filters */}
         <View style={styles.row}>
           <TextInput
             style={styles.lengthInput}
@@ -83,44 +113,58 @@ export default function ExploreQuotesScreen() {
           />
         </View>
 
+        {/* Search & Random buttons */}
         <View style={styles.row}>
           <Button title="Search" onPress={onSearchPress} />
           <TouchableOpacity onPress={onRandomQuotePress}>
-            <Text style={styles.randomQuote}>...or fetch a random quote</Text>
+            <Text style={styles.randomQuote}>…or fetch a random quote</Text>
           </TouchableOpacity>
         </View>
 
+        {/* Quotes list */}
         {isLoading ? (
-          <ActivityIndicator
-            size="large"
-            color="#0000ff"
-            style={styles.loader}
-          />
+          <ActivityIndicator size="large" style={styles.loader} />
         ) : (
-          <>
-            <View style={styles.listHeader}>
-              <Text style={styles.tableHeader}>Quote</Text>
-              <Text style={styles.tableHeader}>Author</Text>
-              <Text style={styles.tableHeader}>Length</Text>
-            </View>
+          <FlatList
+            data={quotes}
+            keyExtractor={(q) => q.id}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>
+                No quotes found. Try different criteria.
+              </Text>
+            }
+            renderItem={({ item }) => {
+              const m: QuoteMeta = metaEntities[item.id] || {
+                id: item.id,
+                likeCount: 0,
+                likedBy: [],
+                commentCount: 0,
+                savedBy: [],
+              };
+              const liked = uid ? m.likedBy.includes(uid) : false;
+              const saved = uid ? m.savedBy.includes(uid) : false;
 
-            <FlatList
-              data={quotes}
-              keyExtractor={(item) => item._id}
-              renderItem={({ item }) => (
-                <View style={styles.quoteRow}>
-                  <Text style={styles.cell}>{item.content}</Text>
-                  <Text style={styles.cell}>{item.author}</Text>
-                  <Text style={styles.cell}>{item.length}</Text>
+              return (
+                <View style={styles.cardWrapper}>
+                  <QuoteCard
+                    quote={item.content}
+                    author={item.author}
+                    liked={liked}
+                    saved={saved}
+                    likeCount={m.likeCount}
+                    commentCount={m.commentCount}
+                    onLike={() => dispatch(toggleLike(item.id))}
+                    onComment={() => {
+                      const text = prompt("Enter comment:");
+                      if (text)
+                        dispatch(addComment({ quoteId: item.id, text }));
+                    }}
+                    onSave={() => dispatch(toggleSave(item.id))}
+                  />
                 </View>
-              )}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>
-                  No quotes found. Try different search criteria.
-                </Text>
-              }
-            />
-          </>
+              );
+            }}
+          />
         )}
       </View>
     </View>
@@ -156,24 +200,7 @@ const styles = StyleSheet.create({
     color: "blue",
     textDecorationLine: "underline",
   },
-  listHeader: {
-    flexDirection: "row",
-    backgroundColor: "#999",
-    padding: 8,
-    marginTop: 12,
-  },
-  tableHeader: {
-    flex: 1,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  quoteRow: {
-    flexDirection: "row",
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-  },
-  cell: { flex: 1 },
   loader: { marginTop: 30 },
   emptyText: { textAlign: "center", marginTop: 30, color: "#666" },
+  cardWrapper: { marginBottom: 8 },
 });

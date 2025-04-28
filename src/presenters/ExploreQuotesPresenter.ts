@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+// src/presenters/ExploreQuotesPresenter.ts
+
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../store/store";
 import { logoutUser, setGuest } from "../store/slices/authSlice";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { ExploreQuotesModel, Quote } from '../models/ExploreQuotesModel';
-import { Tag } from '../store/slices/quote'; // Adjust path as needed
+import { ExploreQuotesModel, Quote } from "../models/ExploreQuotesModel";
+import { Tag } from "../store/slices/quote";
 
 type DashboardStackParamList = {
   ExploreQuotes: undefined;
@@ -18,86 +20,82 @@ export function useExploreQuotesPresenter() {
       StackNavigationProp<DashboardStackParamList, "ExploreQuotes">
     >();
   const { guest } = useSelector((state: RootState) => state.auth);
-  
-  // Quote search state
-  const [search, setSearch] = useState('');
-  const [genre, setGenre] = useState('');
-  const [minLength, setMinLength] = useState('');
-  const [maxLength, setMaxLength] = useState('');
+
+  const [search, setSearch] = useState("");
+  const [genre, setGenre] = useState("");
+  const [minLength, setMinLength] = useState("");
+  const [maxLength, setMaxLength] = useState("");
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
 
-  // Authentication handlers
   const onLogout = () => dispatch(logoutUser());
   const onAuthButtonPress = guest ? () => dispatch(setGuest(false)) : onLogout;
   const onLogoPress = () => navigation.goBack();
 
-  // Initialize and fetch some data when component mounts
   useEffect(() => {
-    fetchInitialQuotes();
     fetchTags();
+    fetchInitialQuotes();
   }, []);
 
-  const fetchTags = async () => {
+  async function fetchTags() {
     try {
       const allTags = await ExploreQuotesModel.getTags();
       setTags(allTags);
-    } catch (error) {
-      console.error("Error fetching tags:", error);
+    } catch (err) {
+      console.error("Error fetching tags:", err);
     }
-  };
-  
-  const fetchInitialQuotes = async () => {
+  }
+
+  async function fetchInitialQuotes() {
     setIsLoading(true);
     try {
-      const fetchedQuotes = await ExploreQuotesModel.getQuotes();
-      setQuotes(fetchedQuotes);
-    } catch (error) {
-      console.error("Error fetching initial quotes:", error);
+      const result = await ExploreQuotesModel.getQuotes();
+      console.log("♻️ Quotes payload:", result);
+      setQuotes(result); // <- now the array of Quote
+    } catch (err) {
+      console.error("Error fetching initial quotes:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const onSearchPress = async () => {
+  async function onSearchPress() {
     setIsLoading(true);
     try {
-      const searchParams = {
+      const params = {
         query: search,
-        genre: genre,
-        minLength: minLength ? parseInt(minLength) : undefined,
-        maxLength: maxLength ? parseInt(maxLength) : undefined,
+        tag: genre,
+        minLength: minLength ? parseInt(minLength, 10) : undefined,
+        maxLength: maxLength ? parseInt(maxLength, 10) : undefined,
       };
-      
-      const searchResults = await ExploreQuotesModel.searchQuotes(searchParams);
-      setQuotes(searchResults);
-    } catch (error) {
-      console.error("Error searching quotes:", error);
+      const result = await ExploreQuotesModel.searchQuotes(params);
+      console.log("♻️ Search payload:", result);
+      setQuotes(result);
+    } catch (err) {
+      console.error("Error searching quotes:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const onRandomQuotePress = async () => {
+  async function onRandomQuotePress() {
     setIsLoading(true);
     try {
-      const randomQuote = await ExploreQuotesModel.getRandomQuote();
-      setQuotes(randomQuote ? [randomQuote] : []);
-    } catch (error) {
-      console.error("Error fetching random quote:", error);
+      const rand = await ExploreQuotesModel.getRandomQuote();
+      console.log("♻️ Random payload:", rand);
+      setQuotes(rand ? [rand] : []);
+    } catch (err) {
+      console.error("Error fetching random quote:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   return {
-    // Auth state and handlers
     guest,
     onAuthButtonPress,
     onLogoPress,
-    
-    // Quote search state and handlers
     search,
     setSearch,
     genre,
@@ -106,9 +104,9 @@ export function useExploreQuotesPresenter() {
     setMinLength,
     maxLength,
     setMaxLength,
+    tags,
     quotes,
     isLoading,
-    tags, // Add tags to the returned object
     onSearchPress,
     onRandomQuotePress,
   };
