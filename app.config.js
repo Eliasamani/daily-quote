@@ -19,10 +19,12 @@ export default {
             supportsTablet: true,
         },
         android: {
+
             adaptiveIcon: {
                 foregroundImage: './assets/adaptive-icon.png',
                 backgroundColor: '#ffffff',
             },
+            package: 'com.anonymous.dailyquote',
         },
         web: {
             favicon: './assets/favicon.png',
