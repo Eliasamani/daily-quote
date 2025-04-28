@@ -1,3 +1,4 @@
+// src/store/slices/quoteMetaSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import firestore from "@react-native-firebase/firestore";
 import auth from "@react-native-firebase/auth";
@@ -135,19 +136,35 @@ const slice = createSlice({
       .addCase(fetchQuoteMeta.fulfilled, (state, { payload }) => {
         state.entities[payload.id] = payload;
       })
-      .addCase(toggleLike.fulfilled, (state, { meta }) => {
-        // remove so next fetch will reload
-        const id = (meta as any).arg;
-        delete state.entities[id];
+      .addCase(toggleLike.fulfilled, (state, action) => {
+        const id = action.meta.arg;
+        const uid = auth().currentUser!.uid;
+        const m = state.entities[id];
+        if (m) {
+          if (m.likedBy.includes(uid)) {
+            m.likedBy = m.likedBy.filter((u) => u !== uid);
+          } else {
+            m.likedBy.unshift(uid);
+          }
+          m.likeCount = m.likedBy.length;
+        }
       })
-      .addCase(addComment.fulfilled, (state, { meta }) => {
-        const quoteId = (meta as any).arg.quoteId;
+      .addCase(addComment.fulfilled, (state, action) => {
+        const quoteId = (action.meta.arg as any).quoteId;
         const m = state.entities[quoteId];
         if (m) m.commentCount++;
       })
-      .addCase(toggleSave.fulfilled, (state, { meta }) => {
-        const id = (meta as any).arg;
-        delete state.entities[id];
+      .addCase(toggleSave.fulfilled, (state, action) => {
+        const id = action.meta.arg;
+        const uid = auth().currentUser!.uid;
+        const m = state.entities[id];
+        if (m) {
+          if (m.savedBy.includes(uid)) {
+            m.savedBy = m.savedBy.filter((u) => u !== uid);
+          } else {
+            m.savedBy.unshift(uid);
+          }
+        }
       });
   },
 });

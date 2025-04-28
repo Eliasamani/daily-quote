@@ -1,6 +1,5 @@
 // src/screens/ExploreQuotesScreen.tsx
-
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,23 +9,26 @@ import {
   ActivityIndicator,
   FlatList,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../store/store";
+import { useSelector } from "react-redux";
+import { useAppDispatch, RootState } from "../store/store";
+
 import {
   fetchQuoteMeta,
   toggleLike,
-  addComment,
   toggleSave,
   QuoteMeta,
 } from "../store/slices/quoteMetaSlice";
+
 import Header from "../components/Header";
 import QuoteCard from "../components/Quote";
+import CommentsModal from "../components/CommentsModal";
 import { useExploreQuotesPresenter } from "../presenters/ExploreQuotesPresenter";
 
 export default function ExploreQuotesScreen() {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const {
     guest,
     onAuthButtonPress,
@@ -46,13 +48,15 @@ export default function ExploreQuotesScreen() {
     isLoading,
   } = useExploreQuotesPresenter();
 
-  // grab our metadata from Redux
   const metaEntities = useSelector(
-    (s: RootState) => s.quoteMeta?.entities ?? {}
+    (state: RootState) => state.quoteMeta.entities
   );
-  const uid = useSelector((s: RootState) => s.auth.user?.uid);
+  const uid = useSelector((state: RootState) => state.auth.user?.uid);
 
-  // whenever we get new quotes, ensure their meta is loaded
+  const [commentModalQuoteId, setCommentModalQuoteId] = useState<string | null>(
+    null
+  );
+
   useEffect(() => {
     quotes.forEach((q) => {
       if (!metaEntities[q.id]) {
@@ -60,6 +64,13 @@ export default function ExploreQuotesScreen() {
       }
     });
   }, [quotes, metaEntities, dispatch]);
+
+  // Helpers to block guest actions
+  const requireLogin = (action: string) => {
+    Alert.alert("Login required", `You must be logged in to ${action}.`, [
+      { text: "OK" },
+    ]);
+  };
 
   return (
     <View style={styles.container}>
@@ -71,7 +82,6 @@ export default function ExploreQuotesScreen() {
       />
 
       <View style={styles.content}>
-        {/* Search input */}
         <TextInput
           style={styles.input}
           placeholder="Search for quotes..."
@@ -79,7 +89,6 @@ export default function ExploreQuotesScreen() {
           onChangeText={setSearch}
         />
 
-        {/* Genre picker */}
         <View style={styles.row}>
           <Text style={styles.label}>Genre:</Text>
           <Picker
@@ -94,7 +103,6 @@ export default function ExploreQuotesScreen() {
           </Picker>
         </View>
 
-        {/* Length filters */}
         <View style={styles.row}>
           <TextInput
             style={styles.lengthInput}
@@ -113,7 +121,6 @@ export default function ExploreQuotesScreen() {
           />
         </View>
 
-        {/* Search & Random buttons */}
         <View style={styles.row}>
           <Button title="Search" onPress={onSearchPress} />
           <TouchableOpacity onPress={onRandomQuotePress}>
@@ -121,7 +128,6 @@ export default function ExploreQuotesScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Quotes list */}
         {isLoading ? (
           <ActivityIndicator size="large" style={styles.loader} />
         ) : (
@@ -144,6 +150,22 @@ export default function ExploreQuotesScreen() {
               const liked = uid ? m.likedBy.includes(uid) : false;
               const saved = uid ? m.savedBy.includes(uid) : false;
 
+              // Handlers that respect guest status
+              const handleLike = () =>
+                guest
+                  ? requireLogin("like quotes")
+                  : dispatch(toggleLike(item.id));
+
+              const handleComment = () =>
+                guest
+                  ? requireLogin("comment on quotes")
+                  : setCommentModalQuoteId(item.id);
+
+              const handleSave = () =>
+                guest
+                  ? requireLogin("save quotes")
+                  : dispatch(toggleSave(item.id));
+
               return (
                 <View style={styles.cardWrapper}>
                   <QuoteCard
@@ -153,13 +175,9 @@ export default function ExploreQuotesScreen() {
                     saved={saved}
                     likeCount={m.likeCount}
                     commentCount={m.commentCount}
-                    onLike={() => dispatch(toggleLike(item.id))}
-                    onComment={() => {
-                      const text = prompt("Enter comment:");
-                      if (text)
-                        dispatch(addComment({ quoteId: item.id, text }));
-                    }}
-                    onSave={() => dispatch(toggleSave(item.id))}
+                    onLike={handleLike}
+                    onComment={handleComment}
+                    onSave={handleSave}
                   />
                 </View>
               );
@@ -167,6 +185,14 @@ export default function ExploreQuotesScreen() {
           />
         )}
       </View>
+
+      {commentModalQuoteId && (
+        <CommentsModal
+          quoteId={commentModalQuoteId}
+          visible
+          onClose={() => setCommentModalQuoteId(null)}
+        />
+      )}
     </View>
   );
 }

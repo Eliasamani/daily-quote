@@ -1,14 +1,14 @@
-import 'react-native-get-random-values';
-import 'react-native-url-polyfill/auto';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
-import { Platform } from 'react-native';
-import { getFirestore } from 'firebase/firestore';
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { initializeAuth, getAuth } from 'firebase/auth';
+import "react-native-get-random-values";
+import "react-native-url-polyfill/auto";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
+import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeAuth, getAuth } from "firebase/auth";
 
 // @ts-ignore
-import { getReactNativePersistence } from '@firebase/auth/dist/rn/index.js';
+import { getReactNativePersistence } from "@firebase/auth/dist/rn/index.js";
 
 const {
   FIREBASE_API_KEY,
@@ -33,8 +33,10 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth =
-  Platform.OS !== 'web'
-    ? initializeAuth(app, { persistence: getReactNativePersistence(AsyncStorage) })
+  Platform.OS !== "web"
+    ? initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage),
+      })
     : getAuth(app);
 
-    export const db = getFirestore(app);
+export const db = getFirestore(app);
