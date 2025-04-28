@@ -32,13 +32,12 @@ export default function MyQuotesScreen() {
     guest,
   } = useMyQuotesPresenter();
 
-  const [commentModalQuoteId, setCommentModalQuoteId] = useState<string | null>(
-    null
-  );
+  const [commentVisible, setCommentVisible] = useState(false);
+  const [activeQuoteId, setActiveQuoteId] = useState<string | null>(null);
 
   const handleLike = (id: string) => {
     if (guest) {
-      Alert.alert("Please log in to like quotes.");
+      Alert.alert("Login required", "Please log in to like quotes.");
     } else {
       dispatch(toggleLike(id));
     }
@@ -46,19 +45,21 @@ export default function MyQuotesScreen() {
 
   const handleSave = (item: Quote, saved: boolean) => {
     if (guest) {
-      Alert.alert("Please log in to save quotes.");
+      Alert.alert("Login required", "Please log in to save quotes.");
       return;
     }
     dispatch(toggleSave(item.id));
-    if (!saved) dispatch(saveQuoteWithData(item));
-    else dispatch(unsaveQuoteWithData(item.id));
+    saved
+      ? dispatch(unsaveQuoteWithData(item.id))
+      : dispatch(saveQuoteWithData(item));
   };
 
   const handleComment = (id: string) => {
     if (guest) {
-      Alert.alert("Please log in to comment.");
+      Alert.alert("Login required", "Please log in to comment.");
     } else {
-      setCommentModalQuoteId(id);
+      setActiveQuoteId(id);
+      setCommentVisible(true);
     }
   };
 
@@ -73,7 +74,7 @@ export default function MyQuotesScreen() {
     content = (
       <FlatList
         data={myQuotes}
-        keyExtractor={(q) => q.id}
+        keyExtractor={(q: Quote) => q.id}
         renderItem={({ item }) => {
           const meta: QuoteMeta = metaEntities[item.id] || {
             id: item.id,
@@ -114,13 +115,11 @@ export default function MyQuotesScreen() {
         onAuthButtonPress={onLogout}
       />
       <View style={styles.content}>{content}</View>
-      {commentModalQuoteId && (
-        <CommentsModal
-          quoteId={commentModalQuoteId}
-          visible={true}
-          onClose={() => setCommentModalQuoteId(null)}
-        />
-      )}
+      <CommentsModal
+        quoteId={activeQuoteId!}
+        visible={commentVisible}
+        onClose={() => setCommentVisible(false)}
+      />
     </View>
   );
 }

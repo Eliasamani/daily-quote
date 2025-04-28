@@ -1,4 +1,3 @@
-// src/screens/SavedQuotesScreen.tsx
 import React from "react";
 import {
   View,
@@ -6,15 +5,20 @@ import {
   StyleSheet,
   ActivityIndicator,
   FlatList,
+  Alert,
 } from "react-native";
-import { useAppDispatch, RootState } from "../store/store";
-import { useSelector } from "react-redux";
+import { useAppDispatch } from "../store/store";
 import { toggleLike } from "../store/slices/quoteMetaSlice";
+import {
+  saveQuoteWithData,
+  unsaveQuoteWithData,
+} from "../store/slices/savedQuotesSlice";
 import Header from "../components/Header";
 import QuoteCard from "../components/Quote";
-import { useSavedQuotesPresenter } from "../presenters/SavedQuotesPresenter";
-import type { QuoteMeta } from "../store/slices/quoteMetaSlice";
+import CommentsModal from "../components/CommentsModal";
 import type { Quote } from "../models/ExploreQuotesModel";
+import type { QuoteMeta } from "../store/slices/quoteMetaSlice";
+import { useSavedQuotesPresenter } from "../presenters/SavedQuotesPresenter";
 
 export default function SavedQuotesScreen() {
   const dispatch = useAppDispatch();
@@ -24,16 +28,42 @@ export default function SavedQuotesScreen() {
     quotes,
     isLoading,
     onUnsave,
+    activeQuoteId,
+    commentVisible,
+    setCommentVisible,
     metaEntities,
     uid,
+    guest,
+    showComments,
   } = useSavedQuotesPresenter();
 
-  // Handler for like button
-  const handleLikePress = (quoteId: string) => {
-    dispatch(toggleLike(quoteId));
+  const handleLike = (id: string) => {
+    if (guest) {
+      Alert.alert("Login required", "Please log in to like quotes.");
+    } else {
+      dispatch(toggleLike(id));
+    }
   };
 
-  // Determine content based on loading and data state
+  const handleSave = (item: Quote, saved: boolean) => {
+    if (guest) {
+      Alert.alert("Login required", "Please log in to save quotes.");
+      return;
+    }
+    dispatch(toggleLike(item.id));
+    saved
+      ? dispatch(unsaveQuoteWithData(item.id))
+      : dispatch(saveQuoteWithData(item));
+  };
+
+  const handleComment = (id: string) => {
+    if (guest) {
+      Alert.alert("Login required", "Please log in to comment.");
+    } else {
+      showComments(id);
+    }
+  };
+
   let content: React.ReactNode;
   if (isLoading) {
     content = <ActivityIndicator size="large" />;
@@ -47,7 +77,6 @@ export default function SavedQuotesScreen() {
         data={quotes}
         keyExtractor={(q: Quote) => q.id}
         renderItem={({ item }) => {
-          // Load metadata for this quote
           const meta: QuoteMeta = metaEntities[item.id] || {
             id: item.id,
             likeCount: 0,
@@ -56,21 +85,20 @@ export default function SavedQuotesScreen() {
             savedBy: [],
           };
           const liked = uid ? meta.likedBy.includes(uid) : false;
-
+          const saved = uid ? meta.savedBy.includes(uid) : false;
           return (
             <View style={styles.cardWrapper}>
               <QuoteCard
                 quote={item.content}
                 author={item.author}
                 liked={liked}
-                saved={true}
+                saved={saved}
                 likeCount={meta.likeCount}
                 commentCount={meta.commentCount}
-                onLike={() => handleLikePress(item.id)}
-                onComment={() => {
-                  /* Optional comment modal here */
-                }}
-                onSave={() => onUnsave(item.id)}
+                onLike={() => handleLike(item.id)}
+                onComment={() => handleComment(item.id)}
+                onSave={() => handleSave(item, saved)}
+                disabled={guest}
               />
             </View>
           );
@@ -88,6 +116,11 @@ export default function SavedQuotesScreen() {
         onAuthButtonPress={onLogout}
       />
       <View style={styles.content}>{content}</View>
+      <CommentsModal
+        quoteId={activeQuoteId!}
+        visible={commentVisible}
+        onClose={() => setCommentVisible(false)}
+      />
     </View>
   );
 }
@@ -96,7 +129,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f9f9" },
   content: { flex: 1, padding: 16 },
   emptyText: {
-    flex: 1,
     textAlign: "center",
     marginTop: 40,
     color: "#666",

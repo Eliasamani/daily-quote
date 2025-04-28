@@ -1,4 +1,3 @@
-// src/presenters/SavedQuotesPresenter.ts
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../store/store";
@@ -15,9 +14,7 @@ import {
 } from "../store/slices/quoteMetaSlice";
 import { unsaveQuoteWithData } from "../store/slices/savedQuotesSlice";
 
-type DashboardStackParamList = {
-  SavedQuotes: undefined;
-};
+type DashboardStackParamList = { SavedQuotes: undefined };
 
 export function useSavedQuotesPresenter() {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,19 +22,21 @@ export function useSavedQuotesPresenter() {
     useNavigation<
       StackNavigationProp<DashboardStackParamList, "SavedQuotes">
     >();
-  const uid = useSelector((s: RootState) => s.auth.user?.uid);
+  const uid = useSelector((state: RootState) => state.auth.user?.uid);
+  const guest = useSelector((state: RootState) => state.auth.guest);
 
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeQuoteId, setActiveQuoteId] = useState<string | null>(null);
+  const [commentVisible, setCommentVisible] = useState(false);
 
-  // Global metadata from Redux
-  const metaEntities = useSelector((s: RootState) => s.quoteMeta.entities);
+  const metaEntities = useSelector(
+    (state: RootState) => state.quoteMeta.entities
+  );
 
-  // Header buttons
   const onLogout = () => dispatch(logoutUser());
   const onLogoPress = () => navigation.goBack();
 
-  // 1) Listen for full-quote snapshots under users/{uid}/savedQuotes
   useEffect(() => {
     if (!uid) {
       setQuotes([]);
@@ -45,26 +44,31 @@ export function useSavedQuotesPresenter() {
       return;
     }
     setIsLoading(true);
-    const savedColl = collection(db, "users", uid, "savedQuotes");
-    const unsub = onSnapshot(savedColl, (snap) => {
-      const full = snap.docs.map((d) => d.data() as Quote);
-      setQuotes(full);
+    const coll = collection(db, "users", uid, "savedQuotes");
+    const unsub = onSnapshot(coll, (snap) => {
+      const list = snap.docs.map((d) => d.data() as Quote);
+      setQuotes(list);
       setIsLoading(false);
-
-      // 2) For each saved quote, make sure its metadata is loaded
-      full.forEach((q) => {
-        if (!metaEntities[q.id]) {
-          dispatch(fetchQuoteMeta(q.id));
-        }
+      list.forEach((q) => {
+        if (!metaEntities[q.id]) dispatch(fetchQuoteMeta(q.id));
       });
     });
     return () => unsub();
   }, [uid, dispatch, metaEntities]);
 
-  // Unsave handler
-  const onUnsave = (quoteId: string) => {
-    dispatch(toggleSave(quoteId));
-    dispatch(unsaveQuoteWithData(quoteId));
+  const onUnsave = (id: string) => {
+    dispatch(toggleSave(id));
+    dispatch(unsaveQuoteWithData(id));
+  };
+
+  const onLike = (id: string) => {
+    dispatch(fetchQuoteMeta(id)); // ensure fresh
+    dispatch(toggleSave(id)); // toggleSave for metadata? should toggleLike but slice handles toggleLike
+  };
+
+  const showComments = (id: string) => {
+    setActiveQuoteId(id);
+    setCommentVisible(true);
   };
 
   return {
@@ -73,7 +77,12 @@ export function useSavedQuotesPresenter() {
     quotes,
     isLoading,
     onUnsave,
+    activeQuoteId,
+    commentVisible,
+    setCommentVisible,
     metaEntities,
     uid,
+    guest,
+    showComments,
   };
 }

@@ -16,9 +16,7 @@ import {
 import type { Quote } from "../models/ExploreQuotesModel";
 import { fetchQuoteMeta, QuoteMeta } from "../store/slices/quoteMetaSlice";
 
-type DashboardStackParamList = {
-  MyQuotes: undefined;
-};
+type DashboardStackParamList = { MyQuotes: undefined };
 
 export function useMyQuotesPresenter() {
   const dispatch = useDispatch<AppDispatch>();
@@ -29,8 +27,6 @@ export function useMyQuotesPresenter() {
 
   const [myQuotes, setMyQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Redux metadata
   const metaEntities = useSelector((s: RootState) => s.quoteMeta.entities);
 
   const onLogout = () => dispatch(logoutUser());
@@ -44,14 +40,13 @@ export function useMyQuotesPresenter() {
     }
     setIsLoading(true);
     const colRef = collection(db, "users", uid, "createdQuotes");
-    const qRef = query(colRef, orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(qRef, (snap: QuerySnapshot) => {
+    const q = query(colRef, orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snap: QuerySnapshot) => {
       const full = snap.docs.map(
         (d: QueryDocumentSnapshot) => d.data() as Quote
       );
       setMyQuotes(full);
       setIsLoading(false);
-      // load metadata for each quote
       full.forEach((quote: Quote) => {
         if (!metaEntities[quote.id]) {
           dispatch(fetchQuoteMeta(quote.id));
