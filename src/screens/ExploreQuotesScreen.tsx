@@ -41,10 +41,6 @@ export default function ExploreQuotesScreen() {
     setSearch,
     genre,
     setGenre,
-    minLength,
-    setMinLength,
-    maxLength,
-    setMaxLength,
     onSearchPress,
     onRandomQuotePress,
     tags,
@@ -143,23 +139,6 @@ export default function ExploreQuotesScreen() {
           </Picker>
         </View>
 
-        <View style={styles.row}>
-          <TextInput
-            style={styles.lengthInput}
-            placeholder="Min Length"
-            keyboardType="numeric"
-            value={minLength}
-            onChangeText={setMinLength}
-          />
-          <Text style={styles.to}>to</Text>
-          <TextInput
-            style={styles.lengthInput}
-            placeholder="Max Length"
-            keyboardType="numeric"
-            value={maxLength}
-            onChangeText={setMaxLength}
-          />
-        </View>
 
         <View style={styles.row}>
           <Button title="Search" onPress={onSearchPress} />
@@ -238,13 +217,6 @@ const styles = StyleSheet.create({
   },
   label: { marginRight: 8 },
   picker: { flex: 1, height: 40 },
-  lengthInput: {
-    flex: 1,
-    backgroundColor: "#eee",
-    padding: 8,
-    borderRadius: 8,
-    marginHorizontal: 4,
-  },
   to: { marginHorizontal: 4 },
   randomQuote: {
     marginLeft: 12,
