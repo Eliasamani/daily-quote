@@ -20,15 +20,18 @@ export function useExploreQuotesPresenter() {
       StackNavigationProp<DashboardStackParamList, "ExploreQuotes">
     >();
   const { guest } = useSelector((state: RootState) => state.auth);
-
-  const [search, setSearch] = useState("");
-  const [genre, setGenre] = useState("");
-  const [minLength, setMinLength] = useState("");
-  const [maxLength, setMaxLength] = useState("");
+  
+  // Quote search state
+  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [search, setSearch] = useState('');
+  const [genre, setGenre] = useState('');
+  const [minLength, setMinLength] = useState('');
+  const [maxLength, setMaxLength] = useState('');
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
-
+    console.log(tags)
+  // Authentication handlers
   const onLogout = () => dispatch(logoutUser());
   const onAuthButtonPress = guest ? () => dispatch(setGuest(false)) : onLogout;
   const onLogoPress = () => navigation.goBack();
@@ -37,6 +40,10 @@ export function useExploreQuotesPresenter() {
     fetchTags();
     fetchInitialQuotes();
   }, []);
+  const onSelectQuote = (quote: Quote) => {
+    setSelectedQuote(quote);
+  };
+
 
   async function fetchTags() {
     try {
@@ -97,14 +104,13 @@ export function useExploreQuotesPresenter() {
     setSearch,
     genre,
     setGenre,
-    minLength,
-    setMinLength,
-    maxLength,
-    setMaxLength,
     tags,
     quotes,
     isLoading,
+    tags,
     onSearchPress,
     onRandomQuotePress,
+    selectedQuote,
+    onSelectQuote,
   };
 }

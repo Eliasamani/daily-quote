@@ -6,16 +6,14 @@ export interface Quote {
   id: string;
   content: string;
   author: string;
-  length: number;
-  tags: string[];
+  genre?: string;
+  tags?: string[];
 }
 
 export interface SearchParams {
   query?: string;
   tag?: string;
   author?: string;
-  minLength?: number;
-  maxLength?: number;
 }
 
 export class ExploreQuotesModel {
@@ -59,8 +57,6 @@ export class ExploreQuotesModel {
       if (params.query) query.append("query", params.query);
       if (params.tag) query.append("tag", params.tag);
       if (params.author) query.append("author", params.author);
-      if (params.minLength) query.append("minLength", String(params.minLength));
-      if (params.maxLength) query.append("maxLength", String(params.maxLength));
       query.append("limit", "25");
 
       const url = `${API_BASE_URL}/quotes?${query.toString()}`;
@@ -91,22 +87,22 @@ export class ExploreQuotesModel {
     try {
       const response = await fetch(`${API_BASE_URL}/quotes/random`);
       if (!response.ok) throw new Error("Failed to fetch random quote");
-      const data = await response.json();
-      console.log("Random API response:", data);
-
-      if (data.quote) {
-        const q = data.quote;
-        return {
-          id: q.id,
-          content: q.content,
-          author: typeof q.author === "string" ? q.author : q.author.name,
-          length: q.content.length,
-          tags: Array.isArray(q.tags) ? q.tags : [],
-        };
-      }
-      return null;
-    } catch (err) {
-      console.error("Error fetching random quote:", err);
+      
+      const quote = await response.json();
+      console.log("Random quote API response:", quote);
+      
+      // Create a properly formatted quote object with safer property access
+      return {
+        _id: quote._id || String(Math.random()),
+        content: quote.content,
+        // Handle author being either a string or an object with a name property
+        author: typeof quote.author === 'object' ? 
+          (quote.author?.name || "Unknown") : 
+          (quote.author || "Unknown"),
+          tags: quote.tags || []
+      };
+    } catch (error) {
+      console.error("Error fetching random quote:", error);
       return null;
     }
   }
@@ -137,7 +133,6 @@ export class ExploreQuotesModel {
         id: q._id ?? q.id,
         content: q.content,
         author: typeof q.author === "string" ? q.author : q.author.name,
-        length: q.content.length,
         tags: Array.isArray(q.tags) ? q.tags : [],
       };
     } catch (err) {

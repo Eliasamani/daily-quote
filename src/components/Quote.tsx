@@ -8,6 +8,7 @@ import {
   GestureResponderEvent,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
+import { speakQuote } from "../utils/tts";
 
 export interface QuoteCardProps {
   quote: string;
@@ -42,6 +43,9 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
   const commentColor = disabled ? "#ccc" : "#555";
   const bookmarkColor = disabled ? "#ccc" : saved ? "#007AFF" : "#555";
   const textColor = disabled ? "#ccc" : "#555";
+  const handleSpeak = () => {
+    if (!disabled) speakQuote(`"${quote}" by ${author}`);
+  };
 
   return (
     <View style={styles.card}>
@@ -95,6 +99,15 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
             size={20}
             color={bookmarkColor}
           />
+        </Pressable>
+
+        <Pressable
+          onPress={handleSpeak}
+          hitSlop={hitSlopArea}
+          accessibilityLabel="Read quote aloud"
+          accessibilityRole="button"
+        >
+          <Icon name="volume-up" size={20} color={textColor} />
         </Pressable>
       </View>
     </View>

@@ -12,6 +12,7 @@ import {
   Alert,
   Platform,
   ToastAndroid,
+  Pressable,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useSelector } from "react-redux";
@@ -141,10 +142,13 @@ export default function ExploreQuotesScreen() {
 
 
         <View style={styles.row}>
-          <Button title="Search" onPress={onSearchPress} />
-          <TouchableOpacity onPress={onRandomQuotePress}>
-            <Text style={styles.randomQuote}>…or fetch a random quote</Text>
-          </TouchableOpacity>
+          <Pressable style={styles.searchButton} onPress={onSearchPress}>
+            <Text style={styles.searchButtonText}>Search</Text>
+          </Pressable>
+          <Pressable style={styles.randomizeButton} onPress={onRandomQuotePress}>
+            <Text style={styles.randomizeButtonText}>Randomize Quote</Text>
+          </Pressable>
+
         </View>
 
         {isLoading ? (
@@ -203,12 +207,43 @@ export default function ExploreQuotesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f9f9" },
+  randomizeButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    minWidth:175,
+    marginLeft: "auto",
+  },
+  searchButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    minWidth: 175,
+    alignItems: "center",
+  },
+  searchButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  
+  randomizeButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginLeft: "auto"
+  },
   content: { flex: 1, padding: 16 },
   input: {
     backgroundColor: "#eee",
     padding: 10,
     borderRadius: 8,
     marginBottom: 10,
+  
   },
   row: {
     flexDirection: "row",
@@ -219,7 +254,7 @@ const styles = StyleSheet.create({
   picker: { flex: 1, height: 40 },
   to: { marginHorizontal: 4 },
   randomQuote: {
-    marginLeft: 12,
+    marginRight: 12,
     color: "blue",
     textDecorationLine: "underline",
   },

@@ -20,10 +20,10 @@
     "expo": "~52.0.40",
     "expo-status-bar": "~2.0.1",
     "firebase": "^11.5.0",
+    "microsoft-cognitiveservices-speech-sdk": "^1.43.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-native": "0.76.7",
-    "react-native-dotenv": "^3.4.11",
     "react-native-get-random-values": "^1.11.0",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.2.0",
@@ -33,6 +33,9 @@
   "devDependencies": {
     "@types/react": "~18.3.12",
     "@types/react-native": "^0.72.8",
+    "babel-preset-expo": "^13.1.10",
+    "metro-react-native-babel-preset": "^0.77.0",
+    "react-native-dotenv": "^3.4.11",
     "typescript": "^5.3.3"
   },
   "private": true
