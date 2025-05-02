@@ -17,7 +17,7 @@ export default function CreateQuotesScreen() {
     useCreateQuotesPresenter();
   const [quote, setQuote] = useState("");
   const [author, setAuthor] = useState("");
-  const [tags, setTags] = useState("");
+  const [genre, setGenre] = useState("");
 
   const onSubmit = () => {
     if (guest) {
@@ -36,7 +36,7 @@ export default function CreateQuotesScreen() {
       return;
     }
 
-    const tagsArray = tags
+    const tagsArray = genre
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
@@ -46,7 +46,7 @@ export default function CreateQuotesScreen() {
     // Clear inputs
     setQuote("");
     setAuthor("");
-    setTags("");
+    setGenre("");
   };
 
   return (
@@ -75,9 +75,9 @@ export default function CreateQuotesScreen() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Enter tags (comma separated)"
-          value={tags}
-          onChangeText={setTags}
+          placeholder="Enter Genre (comma separated)"
+          value={genre}
+          onChangeText={setGenre}
         />
         <Button title="Submit Quote" onPress={onSubmit} />
       </View>

@@ -22,12 +22,12 @@ export function useCreateQuotesPresenter() {
   const guest = useSelector((s: RootState) => s.auth.guest);
 
   const onLogout = () => dispatch(logoutUser());
-  const onLogoPress = () => navigation.goBack();
+  const onLogoPress = () => navigation.navigate("Create"); 
 
   const submitQuote = async (
     content: string,
     author: string,
-    tags: string[]
+    genre: string[]
   ) => {
     const userId = auth.currentUser?.uid;
     if (!userId) {
@@ -42,7 +42,7 @@ export function useCreateQuotesPresenter() {
       await setDoc(newRef, {
         content,
         author,
-        tags,
+        genre,
         createdBy: userId,
         createdAt: serverTimestamp(),
       });
@@ -53,12 +53,14 @@ export function useCreateQuotesPresenter() {
         id: newRef.id,
         content,
         author,
-        tags,
+        genre,
         createdBy: userId,
         createdAt: serverTimestamp(),
       });
+      Alert.alert("Your quote has been submited");
 
-      navigation.goBack();
+      navigation.navigate("Create");
+    
     } catch (err) {
       console.error("Error submitting quote:", err);
       Alert.alert("Failed to submit quote");
