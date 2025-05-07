@@ -1,7 +1,6 @@
 import "react-native-get-random-values";
 import "react-native-url-polyfill/auto";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { getFirestore } from "firebase/firestore";
 import { initializeApp, getApps, getApp } from "firebase/app";
@@ -9,7 +8,6 @@ import { initializeAuth, getAuth } from "firebase/auth";
 
 // @ts-ignore
 import { getReactNativePersistence } from "@firebase/auth/dist/rn/index.js";
-
 import {
   FIREBASE_API_KEY,
   FIREBASE_AUTH_DOMAIN,
