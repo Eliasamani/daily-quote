@@ -10,7 +10,7 @@ import { initializeAuth, getAuth } from "firebase/auth";
 // @ts-ignore
 import { getReactNativePersistence } from "@firebase/auth/dist/rn/index.js";
 
-const {
+import {
   FIREBASE_API_KEY,
   FIREBASE_AUTH_DOMAIN,
   FIREBASE_PROJECT_ID,
@@ -18,7 +18,7 @@ const {
   FIREBASE_MESSAGING_SENDER_ID,
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
-} = Constants.expoConfig?.extra ?? {};
+} from '@env';
 
 const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,
