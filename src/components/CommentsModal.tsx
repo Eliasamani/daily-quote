@@ -98,10 +98,14 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
           <View style={styles.comment}>
             <Text style={styles.commentText}>{item.text}</Text>
             <Text style={styles.commentMeta}>
-              by {item.userId} · {item.createdAt.toDate().toLocaleString()}
+              by {item.userId} ·{" "}
+              {item.createdAt && item.createdAt.toDate
+                ? item.createdAt.toDate().toLocaleString()
+                : "Sending..."}
             </Text>
           </View>
         )}
+        
       />
 
       <View style={styles.inputRow}>
