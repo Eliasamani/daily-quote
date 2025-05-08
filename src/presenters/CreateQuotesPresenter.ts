@@ -46,6 +46,7 @@ export function useCreateQuotesPresenter() {
         createdBy: userId,
         createdAt: serverTimestamp(),
       });
+      console.log('API Key:', process.env.FIREBASE_API_KEY);
 
       // 2) snapshot under users/{uid}/createdQuotes/{id}
       const userRef = doc(db, "users", userId, "createdQuotes", newRef.id);
