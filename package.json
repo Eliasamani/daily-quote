@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-  "setup": "cp .env.example .env || echo '.env exists' && npm install",
-  "start": "expo start",
-  "start:web": "expo start --web --clear",
-  "build:web": "expo export:web",
-  "deploy": "firebase deploy"
+    "setup": "cp .env.example .env || echo '.env exists' && npm install",
+    "start": "expo start",
+    "start:web": "expo start --web --clear",
+    "build:web": "expo export:web",
+    "deploy": "firebase deploy"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
