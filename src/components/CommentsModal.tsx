@@ -29,6 +29,7 @@ export interface Comment {
   id: string;
   userId: string;
   text: string;
+  username?: string; 
   createdAt: Timestamp;
 }
 
@@ -98,7 +99,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
           <View style={styles.comment}>
             <Text style={styles.commentText}>{item.text}</Text>
             <Text style={styles.commentMeta}>
-              by {item.userId} ·{" "}
+  by {item.username || "Unknown"} ·{" "}
+
               {item.createdAt && item.createdAt.toDate
                 ? item.createdAt.toDate().toLocaleString()
                 : "Sending..."}
