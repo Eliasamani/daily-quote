@@ -1,14 +1,14 @@
-import "react-native-get-random-values";
-import "react-native-url-polyfill/auto";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
+// services/firebase.js
+import { initializeApp } from "firebase/app";
+import {
+  initializeAuth,
+  getReactNativePersistence,
+  getAuth,
+} from "firebase/auth";
 import { Platform } from "react-native";
+import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getFirestore } from "firebase/firestore";
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { initializeAuth, getAuth } from "firebase/auth";
-
-// @ts-ignore
-import { getReactNativePersistence } from "@firebase/auth/dist/rn/index.js";
 
 const {
   FIREBASE_API_KEY,
@@ -30,7 +30,7 @@ const firebaseConfig = {
   measurementId: FIREBASE_MEASUREMENT_ID,
 };
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
 export const auth =
   Platform.OS !== "web"

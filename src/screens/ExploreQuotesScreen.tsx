@@ -12,8 +12,9 @@ import {
   Platform,
   ToastAndroid,
   Pressable,
-  CheckBox,
 } from "react-native";
+
+import CheckBox from "expo-checkbox";
 import { Picker } from "@react-native-picker/picker";
 import { useSelector } from "react-redux";
 import { useAppDispatch, RootState } from "../store/store";
@@ -123,11 +124,13 @@ export default function ExploreQuotesScreen() {
       <View style={styles.content}>
         <TextInput
           style={styles.input}
-          placeholder={searchByAuthor ? "Search for authors..." : "Search for quotes..."}
+          placeholder={
+            searchByAuthor ? "Search for authors..." : "Search for quotes..."
+          }
           value={search}
           onChangeText={setSearch}
         />
-        
+
         <View style={styles.checker}>
           <Text style={styles.checkboxLabel}>Search by author</Text>
           <CheckBox
@@ -136,7 +139,7 @@ export default function ExploreQuotesScreen() {
             style={styles.checkbox}
           />
         </View>
-        
+
         <View style={styles.row}>
           <Text style={styles.label}>Genre:</Text>
           <Picker
@@ -155,7 +158,10 @@ export default function ExploreQuotesScreen() {
           <Pressable style={styles.searchButton} onPress={onSearchPress}>
             <Text style={styles.searchButtonText}>Search</Text>
           </Pressable>
-          <Pressable style={styles.randomizeButton} onPress={onRandomQuotePress}>
+          <Pressable
+            style={styles.randomizeButton}
+            onPress={onRandomQuotePress}
+          >
             <Text style={styles.randomizeButtonText}>Randomize Quote</Text>
           </Pressable>
         </View>
@@ -229,10 +235,10 @@ const styles = StyleSheet.create({
     height: 20,
   },
   checker: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   checkboxLabel: {
     marginRight: 8,
@@ -257,7 +263,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     textAlign: "center",
-    marginLeft: "auto"
+    marginLeft: "auto",
   },
   content: { flex: 1, padding: 16 },
   input: {
