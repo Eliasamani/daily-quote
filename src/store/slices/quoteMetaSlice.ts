@@ -1,6 +1,7 @@
 // src/store/slices/quoteMetaSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { auth, db } from "../../config/firebase";
+import { setDoc } from "firebase/firestore";
 import {
   doc,
   getDoc,
@@ -83,23 +84,40 @@ export const toggleLike = createAsyncThunk<void, string>(
   }
 );
 
-// Add a comment, and increment the parent commentCount
-export const addComment = createAsyncThunk<
-  void,
-  { quoteId: string; text: string }
->("quoteMeta/addComment", async ({ quoteId, text }) => {
-  const uid = auth.currentUser!.uid;
-  const commentsRef = collection(db, "quoteMeta", quoteId, "comments");
-  await addDoc(commentsRef, {
-    userId: uid,
-    text,
-    createdAt: serverTimestamp(),
-  });
+export const addComment = createAsyncThunk(
+  "quoteMeta/addComment",
+  async ({ quoteId, text }: { quoteId: string; text: string }, thunkAPI) => {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("Not authenticated");
 
-  // increment the commentCount on the parent document
-  const parentRef = doc(db, "quoteMeta", quoteId);
-  await updateDoc(parentRef, { commentCount: increment(1) });
-});
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+
+      const userData = userDoc.data();
+      const username = userDoc.exists() ? userData?.username : "Unknown";
+
+      if (!text || typeof username !== "string") {
+        throw new Error("Missing required comment fields");
+      }
+
+      const commentRef = doc(collection(db, "quoteMeta", quoteId, "comments"));
+      await setDoc(commentRef, {
+        userId: user.uid,
+        username,
+        text,
+        createdAt: serverTimestamp(),
+      });
+
+      // ✅ Restore the commentCount increment
+      const parentRef = doc(db, "quoteMeta", quoteId);
+      await updateDoc(parentRef, { commentCount: increment(1) });
+
+    } catch (err: any) {
+      console.error("Failed to save comment:", err.message);
+    }
+  }
+);
 
 // Toggle saving a quote on/off
 export const toggleSave = createAsyncThunk<void, string>(
