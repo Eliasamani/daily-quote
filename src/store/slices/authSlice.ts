@@ -5,7 +5,9 @@ import {
   createUserWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
+import { db } from "../../config/firebase";
 
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (
@@ -29,17 +31,21 @@ export const loginUser = createAsyncThunk(
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (
-    { email, password }: { email: string; password: string },
+    { email, password, username }: { email: string; password: string; username: string },
     { rejectWithValue }
   ) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      return { uid: user.uid, email: user.email };
+
+    
+      await setDoc(doc(db, "users", user.uid), {
+        email,
+        username,
+        createdAt: serverTimestamp(),
+      });
+
+      return { uid: user.uid, email: user.email, username };
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
@@ -58,9 +64,11 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+
 interface AuthUser {
   uid: string;
   email: string | null;
+  username?: string; 
 }
 
 interface AuthState {

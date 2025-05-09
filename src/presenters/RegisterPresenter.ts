@@ -9,6 +9,8 @@ import { AuthStackParamList } from "../navigation/AuthNavigator";
 export function useRegisterPresenter() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState(""); 
+
   const dispatch = useDispatch<AppDispatch>();
   const { error, loading } = useSelector((state: RootState) => state.auth);
   const navigation =
@@ -16,9 +18,10 @@ export function useRegisterPresenter() {
 
   const onEmailChange = (text: string) => setEmail(text);
   const onPasswordChange = (text: string) => setPassword(text);
+  const onUsernameChange = (text: string) => setUsername(text);
 
   const onRegister = () => {
-    dispatch(registerUser({ email, password }));
+    dispatch(registerUser({ email, password, username }));
   };
 
   const onNavigateToLogin = () => {
@@ -28,11 +31,13 @@ export function useRegisterPresenter() {
   return {
     email,
     password,
+    username,
     error,
     loading,
     onEmailChange,
     onPasswordChange,
     onRegister,
     onNavigateToLogin,
+    onUsernameChange
   };
 }

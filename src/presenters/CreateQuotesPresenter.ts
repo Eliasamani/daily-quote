@@ -46,7 +46,6 @@ export function useCreateQuotesPresenter() {
         createdBy: userId,
         createdAt: serverTimestamp(),
       });
-      console.log('API Key:', process.env.FIREBASE_API_KEY);
 
       // 2) snapshot under users/{uid}/createdQuotes/{id}
       const userRef = doc(db, "users", userId, "createdQuotes", newRef.id);
@@ -59,7 +58,8 @@ export function useCreateQuotesPresenter() {
         createdAt: serverTimestamp(),
       });
 
-      navigation.goBack();
+      Alert.alert("Success", "Your quote has been added!"); 
+
     } catch (err) {
       console.error("Error submitting quote:", err);
       Alert.alert("Failed to submit quote");

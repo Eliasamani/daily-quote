@@ -15,8 +15,10 @@ export default function RegisterScreen() {
     password,
     error,
     loading,
+    username,
     onEmailChange,
     onPasswordChange,
+    onUsernameChange,
     onRegister,
     onNavigateToLogin,
   } = useRegisterPresenter();
@@ -29,6 +31,15 @@ export default function RegisterScreen() {
         onAuthButtonPress={onNavigateToLogin}
       />
       <View style={styles.content}>
+
+
+      <TextInput
+  placeholder="Username"
+  value={username}
+  onChangeText={onUsernameChange}
+  style={styles.input}
+  autoCapitalize="none"
+/>
         <TextInput
           placeholder="Email"
           value={email}
@@ -37,6 +48,7 @@ export default function RegisterScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
         />
+        
         <TextInput
           placeholder="Password"
           value={password}
