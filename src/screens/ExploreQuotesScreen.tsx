@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TextInput,
-  Button,
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
@@ -13,6 +12,7 @@ import {
   Platform,
   ToastAndroid,
   Pressable,
+  CheckBox,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useSelector } from "react-redux";
@@ -47,6 +47,8 @@ export default function ExploreQuotesScreen() {
     tags,
     quotes,
     isLoading,
+    searchByAuthor,
+    toggleSearchByAuthor,
   } = useExploreQuotesPresenter();
 
   const metaEntities = useSelector(
@@ -121,11 +123,20 @@ export default function ExploreQuotesScreen() {
       <View style={styles.content}>
         <TextInput
           style={styles.input}
-          placeholder="Search for quotes..."
+          placeholder={searchByAuthor ? "Search for authors..." : "Search for quotes..."}
           value={search}
           onChangeText={setSearch}
         />
-
+        
+        <View style={styles.checker}>
+          <Text style={styles.checkboxLabel}>Search by author</Text>
+          <CheckBox
+            value={searchByAuthor}
+            onValueChange={toggleSearchByAuthor}
+            style={styles.checkbox}
+          />
+        </View>
+        
         <View style={styles.row}>
           <Text style={styles.label}>Genre:</Text>
           <Picker
@@ -140,7 +151,6 @@ export default function ExploreQuotesScreen() {
           </Picker>
         </View>
 
-
         <View style={styles.row}>
           <Pressable style={styles.searchButton} onPress={onSearchPress}>
             <Text style={styles.searchButtonText}>Search</Text>
@@ -148,7 +158,6 @@ export default function ExploreQuotesScreen() {
           <Pressable style={styles.randomizeButton} onPress={onRandomQuotePress}>
             <Text style={styles.randomizeButtonText}>Randomize Quote</Text>
           </Pressable>
-
         </View>
 
         {isLoading ? (
@@ -212,8 +221,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 6,
-    minWidth:175,
+    minWidth: 175,
     marginLeft: "auto",
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+  },
+  checker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    justifyContent: 'flex-end',
+  },
+  checkboxLabel: {
+    marginRight: 8,
+    fontSize: 14,
   },
   searchButton: {
     backgroundColor: "#4CAF50",
@@ -229,7 +252,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-  
   randomizeButtonText: {
     color: "white",
     fontSize: 16,
@@ -243,7 +265,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     marginBottom: 10,
-  
   },
   row: {
     flexDirection: "row",

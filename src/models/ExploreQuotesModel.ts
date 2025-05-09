@@ -14,6 +14,8 @@ export interface SearchParams {
   query?: string;
   tag?: string;
   author?: string;
+  minLength?: number;
+  maxLength?: number;
 }
 
 export class ExploreQuotesModel {
@@ -57,6 +59,8 @@ export class ExploreQuotesModel {
       if (params.query) query.append("query", params.query);
       if (params.tag) query.append("tag", params.tag);
       if (params.author) query.append("author", params.author);
+      if (params.minLength) query.append("minLength", params.minLength.toString());
+      if (params.maxLength) query.append("maxLength", params.maxLength.toString());
       query.append("limit", "25");
 
       const url = `${API_BASE_URL}/quotes?${query.toString()}`;
@@ -93,13 +97,13 @@ export class ExploreQuotesModel {
       
       // Create a properly formatted quote object with safer property access
       return {
-        _id: quote._id || String(Math.random()),
+        id: quote._id || quote.id || String(Math.random()),
         content: quote.content,
         // Handle author being either a string or an object with a name property
         author: typeof quote.author === 'object' ? 
           (quote.author?.name || "Unknown") : 
           (quote.author || "Unknown"),
-          tags: quote.tags || []
+        tags: quote.tags || []
       };
     } catch (error) {
       console.error("Error fetching random quote:", error);
