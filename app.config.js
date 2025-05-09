@@ -4,6 +4,7 @@ export default {
         name: 'daily-quote',
         slug: 'daily-quote',
         version: '1.0.0',
+        assetBundlePatterns: ["**/*"],
         orientation: 'portrait',
         icon: './assets/icon.png',
         userInterfaceStyle: 'light',
