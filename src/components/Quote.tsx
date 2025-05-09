@@ -7,7 +7,7 @@ import {
   StyleSheet,
   GestureResponderEvent,
 } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import { speakQuote } from "../utils/tts";
 
 export interface QuoteCardProps {
@@ -63,7 +63,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
           accessibilityRole="button"
         >
           <View style={styles.actionButton}>
-            <Icon
+            <FontAwesome
               name={liked ? "heart" : "heart-o"}
               size={20}
               color={heartColor}
@@ -81,7 +81,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
           accessibilityRole="button"
         >
           <View style={styles.actionButton}>
-            <Icon name="comment-o" size={20} color={commentColor} />
+            <FontAwesome name="comment-o" size={20} color={commentColor} />
             <Text style={[styles.actionText, { color: textColor }]}>
               {commentCount}
             </Text>
@@ -94,7 +94,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
           accessibilityLabel={saved ? "Saved" : "Save"}
           accessibilityRole="button"
         >
-          <Icon
+          <FontAwesome
             name={saved ? "bookmark" : "bookmark-o"}
             size={20}
             color={bookmarkColor}
@@ -107,7 +107,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
           accessibilityLabel="Read quote aloud"
           accessibilityRole="button"
         >
-          <Icon name="volume-up" size={20} color={textColor} />
+          <FontAwesome name="volume-up" size={20} color={textColor} />
         </Pressable>
       </View>
     </View>

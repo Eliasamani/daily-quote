@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import Icon from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from "@expo/vector-icons";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
 import { setGuest } from "../store/slices/authSlice";
@@ -58,7 +58,7 @@ export default function DashboardNavigator() {
           default:
             name = "circle";
         }
-        return <Icon name={name} size={size} color={color} />;
+        return <FontAwesome name={name} size={size} color={color} />;
       },
       tabBarLabel: routeName,
       tabBarActiveTintColor: "#fff",

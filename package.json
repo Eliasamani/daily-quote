@@ -31,13 +31,15 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
-    "react-redux": "^9.2.0"
+    "react-redux": "^9.2.0",
+    "@expo/vector-icons": "^14.1.0"
   },
   "devDependencies": {
     "babel-preset-expo": "^13.1.10",
     "metro-react-native-babel-preset": "^0.77.0",
     "react-native-dotenv": "^3.4.11",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@types/react": "~19.0.10"
   },
   "private": true
 }
