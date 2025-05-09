@@ -1,5 +1,4 @@
 // src/presenters/ExploreQuotesPresenter.ts
-
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../store/store";
@@ -30,7 +29,18 @@ export function useExploreQuotesPresenter() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
-    console.log(tags)
+  // Add search by author state
+  const [searchByAuthor, setSearchByAuthor] = useState(false);
+  
+  // Handle toggling search by author and clear search input only when going from author to regular search
+  const toggleSearchByAuthor = (value: boolean) => {
+    // If turning OFF author search (going from author search to regular search), clear the input
+    if (searchByAuthor === true && value === false) {
+      setSearch('');
+    }
+    setSearchByAuthor(value);
+  };
+
   // Authentication handlers
   const onLogout = () => dispatch(logoutUser());
   const onAuthButtonPress = guest ? () => dispatch(setGuest(false)) : onLogout;
@@ -40,11 +50,11 @@ export function useExploreQuotesPresenter() {
     fetchTags();
     fetchInitialQuotes();
   }, []);
+
   const onSelectQuote = (quote: Quote) => {
     setSelectedQuote(quote);
   };
-
-
+  
   async function fetchTags() {
     try {
       const allTags = await ExploreQuotesModel.getTags();
@@ -70,7 +80,9 @@ export function useExploreQuotesPresenter() {
     setIsLoading(true);
     try {
       const params = {
-        query: search,
+        // Use search as either query or author based on checkbox state
+        query: searchByAuthor ? undefined : search,
+        author: searchByAuthor ? search : undefined,
         tag: genre,
         minLength: minLength ? parseInt(minLength, 10) : undefined,
         maxLength: maxLength ? parseInt(maxLength, 10) : undefined,
@@ -107,7 +119,8 @@ export function useExploreQuotesPresenter() {
     tags,
     quotes,
     isLoading,
-    tags,
+    searchByAuthor,
+    toggleSearchByAuthor,
     onSearchPress,
     onRandomQuotePress,
     selectedQuote,
