@@ -99,7 +99,10 @@ export function useExploreQuotesPresenter() {
   async function onRandomQuotePress() {
     setIsLoading(true);
     try {
-      const rand = await ExploreQuotesModel.getRandomQuote();
+      const rand = await ExploreQuotesModel.getRandomQuote({ 
+        tag: genre // Use the existing genre state for tag filtering
+      });
+      
       setQuotes(rand ? [rand] : []);
     } catch (err) {
       console.error("Error fetching random quote:", err);

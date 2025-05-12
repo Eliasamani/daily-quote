@@ -87,25 +87,54 @@ export class ExploreQuotesModel {
     }
   }
 
-  static async getRandomQuote(): Promise<Quote | null> {
+  static async getRandomQuote(params: { 
+    tag?: string, 
+    author?: string, 
+    genre?: string 
+  } = {}): Promise<Quote | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/quotes/random`);
+      // Construct query parameters
+      const query = new URLSearchParams();
+      
+      // Add optional filters if provided
+      if (params.tag) query.append('tags', params.tag);
+      if (params.author) query.append('author', params.author);
+      if (params.genre) query.append('genre', params.genre);
+      
+      // Always get a random quote
+      const url = `${API_BASE_URL}/quotes/random?${query.toString()}`;
+      
+      console.log("Random quote request URL:", url);
+  
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch random quote");
+      
+      const data = await response.json();
+      console.log("Random quote API full response:", data);
   
-      const q = await response.json();
-      console.log("Random quote API response:", q);
-  
+      // Extract the quote from the nested structure
+      const quote = data.quote || data;
+      
       return {
-        id: quote._id || quote.id || String(Math.random()),
+        id: quote.id,
         content: quote.content,
-        // Handle author being either a string or an object with a name property
-        author: typeof quote.author === 'object' ? 
-          (quote.author?.name || "Unknown") : 
-          (quote.author || "Unknown"),
-        tags: quote.tags || []
+        // Handle author object or string
+        author: quote.author?.name || quote.author || "Unknown",
+        // Handle tags array from nested structure
+        tags: quote.tags?.map((tag: any) => 
+          typeof tag === 'object' ? tag.name : tag
+        ) || [],
+        // Include genre if available
+        genre: quote.genre || (quote.tags?.[0]?.name)
       };
     } catch (error) {
       console.error("Error fetching random quote:", error);
+      // Additional detailed logging
+      console.error("Error details:", {
+        name: error instanceof Error ? error.name : 'Unknown Error',
+        message: error instanceof Error ? error.message : 'No message',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      });
       return null;
     }
   }  
