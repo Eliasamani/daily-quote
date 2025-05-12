@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image, } from "react-native";
+import { useNavigation } from '@react-navigation/native';
 
 interface HeaderProps {
   title: string;
@@ -8,29 +9,40 @@ interface HeaderProps {
   onAuthButtonPress?: () => void;
 }
 
+
+
 export default function Header({
   title,
   onLogoPress,
   authButtonText,
   onAuthButtonPress,
 }: HeaderProps) {
+  const navigation = useNavigation();
   const buttonStyle = [
     styles.authButton,
     authButtonText === "Logout" && styles.logoutButton,
   ];
 
   return (
-    <View style={styles.headerContainer}>
-      <TouchableOpacity onPress={onLogoPress} style={styles.logoContainer}>
-        <Image source={require("../../assets/logo.png")} style={styles.logo} />
+<View style={styles.headerContainer}>
+  <View style={{ flexDirection: "row", alignItems: "center" }}>
+    {(
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Text style={styles.backButtonText}>←</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>{title}</Text>
-      {authButtonText && onAuthButtonPress && (
-        <TouchableOpacity style={buttonStyle} onPress={onAuthButtonPress}>
-          <Text style={styles.authButtonText}>{authButtonText}</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+    )}
+    <TouchableOpacity onPress={onLogoPress} style={styles.logoContainer}>
+      <Image source={require("../../assets/logo.png")} style={styles.logo} />
+    </TouchableOpacity>
+  </View>
+  <Text style={styles.title}>{title}</Text>
+  {authButtonText && onAuthButtonPress && (
+    <TouchableOpacity style={buttonStyle} onPress={onAuthButtonPress}>
+      <Text style={styles.authButtonText}>{authButtonText}</Text>
+    </TouchableOpacity>
+  )}
+</View>
+
   );
 }
 
@@ -50,6 +62,14 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     resizeMode: "contain",
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 8,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: "#007aff",
   },
   title: {
     fontSize: 20,
