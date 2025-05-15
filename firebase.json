@@ -2,10 +2,13 @@
   "hosting": {
     "public": "dist",
     "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "include": [
+        "node_modules/react-native-vector-icons/Fonts/*.ttf"
+      ],
     "rewrites": [
       {
         "source": "**",
