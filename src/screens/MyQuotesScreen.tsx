@@ -1,12 +1,6 @@
+// src/screens/MyQuotesScreen.tsx
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  FlatList,
-  Alert,
-} from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { useAppDispatch } from "../store/store";
 import { toggleLike, toggleSave } from "../store/slices/quoteMetaSlice";
 import {
@@ -16,9 +10,9 @@ import {
 import Header from "../components/Header";
 import QuoteCard from "../components/Quote";
 import CommentsModal from "../components/CommentsModal";
+import { useMyQuotesPresenter } from "../presenters/MyQuotesPresenter";
 import type { Quote } from "../models/ExploreQuotesModel";
 import type { QuoteMeta } from "../store/slices/quoteMetaSlice";
-import { useMyQuotesPresenter } from "../presenters/MyQuotesPresenter";
 
 export default function MyQuotesScreen() {
   const dispatch = useAppDispatch();
@@ -36,31 +30,21 @@ export default function MyQuotesScreen() {
   const [activeQuoteId, setActiveQuoteId] = useState<string | null>(null);
 
   const handleLike = (id: string) => {
-    if (guest) {
-      Alert.alert("Login required", "Please log in to like quotes.");
-    } else {
-      dispatch(toggleLike(id));
-    }
+    dispatch(toggleLike(id));
   };
 
   const handleSave = (item: Quote, saved: boolean) => {
-    if (guest) {
-      Alert.alert("Login required", "Please log in to save quotes.");
-      return;
-    }
     dispatch(toggleSave(item.id));
-    saved
-      ? dispatch(unsaveQuoteWithData(item.id))
-      : dispatch(saveQuoteWithData(item));
+    if (saved) {
+      dispatch(unsaveQuoteWithData(item.id));
+    } else {
+      dispatch(saveQuoteWithData(item));
+    }
   };
 
   const handleComment = (id: string) => {
-    if (guest) {
-      Alert.alert("Login required", "Please log in to comment.");
-    } else {
-      setActiveQuoteId(id);
-      setCommentVisible(true);
-    }
+    setActiveQuoteId(id);
+    setCommentVisible(true);
   };
 
   let content: React.ReactNode;
@@ -90,6 +74,7 @@ export default function MyQuotesScreen() {
               <QuoteCard
                 quote={item.content}
                 author={item.author}
+                isAuth={!guest}
                 liked={liked}
                 saved={saved}
                 likeCount={meta.likeCount}
@@ -97,7 +82,6 @@ export default function MyQuotesScreen() {
                 onLike={() => handleLike(item.id)}
                 onComment={() => handleComment(item.id)}
                 onSave={() => handleSave(item, saved)}
-                disabled={guest}
               />
             </View>
           );

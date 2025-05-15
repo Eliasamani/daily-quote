@@ -1,4 +1,4 @@
-// src/components/QuoteCard.tsx
+// src/components/Quote.tsx
 import React from "react";
 import {
   View,
@@ -6,6 +6,9 @@ import {
   Pressable,
   StyleSheet,
   GestureResponderEvent,
+  Alert,
+  Platform,
+  ToastAndroid,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { speakQuote } from "../utils/tts";
@@ -13,39 +16,56 @@ import { speakQuote } from "../utils/tts";
 export interface QuoteCardProps {
   quote: string;
   author: string;
-  liked?: boolean;
-  saved?: boolean;
-  likeCount?: number;
-  commentCount?: number;
-  onLike?: (event: GestureResponderEvent) => void;
-  onComment?: (event: GestureResponderEvent) => void;
-  onSave?: (event: GestureResponderEvent) => void;
-  /** when true, all actions are shown as disabled (grayed out) */
-  disabled?: boolean;
+  isAuth: boolean;
+  liked: boolean;
+  saved: boolean;
+  likeCount: number;
+  commentCount: number;
+  onLike: (event: GestureResponderEvent) => void;
+  onComment: (event: GestureResponderEvent) => void;
+  onSave: (event: GestureResponderEvent) => void;
 }
 
 const QuoteCard: React.FC<QuoteCardProps> = ({
   quote,
   author,
-  liked = false,
-  saved = false,
-  likeCount = 0,
-  commentCount = 0,
+  isAuth,
+  liked,
+  saved,
+  likeCount,
+  commentCount,
   onLike,
   onComment,
   onSave,
-  disabled = false,
 }) => {
   const hitSlopArea = { top: 8, bottom: 8, left: 8, right: 8 };
 
-  // If disabled, show grey; else normal
-  const heartColor = disabled ? "#ccc" : liked ? "red" : "#555";
-  const commentColor = disabled ? "#ccc" : "#555";
-  const bookmarkColor = disabled ? "#ccc" : saved ? "#007AFF" : "#555";
-  const textColor = disabled ? "#ccc" : "#555";
-  const handleSpeak = () => {
-    if (!disabled) speakQuote(`"${quote}" by ${author}`);
+  const requireLogin = (action: string) => {
+    const msg = `Please log in to ${action}.`;
+    if (Platform.OS === "android") {
+      ToastAndroid.show(msg, ToastAndroid.SHORT);
+    } else if (Platform.OS === "web" && typeof window !== "undefined") {
+      window.alert(msg);
+    } else {
+      Alert.alert("Login required", msg, [{ text: "OK" }]);
+    }
   };
+
+  // Colors
+  const heartColor = isAuth ? (liked ? "red" : "#555") : "#ccc";
+  const commentColor = isAuth ? "#555" : "#ccc";
+  const bookmarkColor = isAuth ? (saved ? "#007AFF" : "#555") : "#ccc";
+  const countColor = isAuth ? "#555" : "#ccc";
+  const ttsColor = "#555"; // always enabled
+
+  // Handlers
+  const handleLike = (e: GestureResponderEvent) =>
+    isAuth ? onLike(e) : requireLogin("like quotes");
+  const handleComment = (e: GestureResponderEvent) =>
+    isAuth ? onComment(e) : requireLogin("comment on quotes");
+  const handleSave = (e: GestureResponderEvent) =>
+    isAuth ? onSave(e) : requireLogin("save quotes");
+  const handleSpeak = () => speakQuote(`“${quote}” — ${author}`);
 
   return (
     <View style={styles.card}>
@@ -57,10 +77,10 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
       </Text>
       <View style={styles.actions}>
         <Pressable
-          onPress={onLike}
+          onPress={handleLike}
           hitSlop={hitSlopArea}
-          accessibilityLabel={`${likeCount} likes`}
           accessibilityRole="button"
+          accessibilityLabel={`${likeCount} likes`}
         >
           <View style={styles.actionButton}>
             <FontAwesome
@@ -68,31 +88,29 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
               size={20}
               color={heartColor}
             />
-            <Text style={[styles.actionText, { color: textColor }]}>
+            <Text style={[styles.actionText, { color: countColor }]}>
               {likeCount}
             </Text>
           </View>
         </Pressable>
-
         <Pressable
-          onPress={onComment}
+          onPress={handleComment}
           hitSlop={hitSlopArea}
-          accessibilityLabel={`${commentCount} comments`}
           accessibilityRole="button"
+          accessibilityLabel={`${commentCount} comments`}
         >
           <View style={styles.actionButton}>
             <FontAwesome name="comment-o" size={20} color={commentColor} />
-            <Text style={[styles.actionText, { color: textColor }]}>
+            <Text style={[styles.actionText, { color: countColor }]}>
               {commentCount}
             </Text>
           </View>
         </Pressable>
-
         <Pressable
-          onPress={onSave}
+          onPress={handleSave}
           hitSlop={hitSlopArea}
-          accessibilityLabel={saved ? "Saved" : "Save"}
           accessibilityRole="button"
+          accessibilityLabel={saved ? "Saved" : "Save"}
         >
           <FontAwesome
             name={saved ? "bookmark" : "bookmark-o"}
@@ -100,14 +118,13 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
             color={bookmarkColor}
           />
         </Pressable>
-
         <Pressable
           onPress={handleSpeak}
           hitSlop={hitSlopArea}
-          accessibilityLabel="Read quote aloud"
           accessibilityRole="button"
+          accessibilityLabel="Read quote aloud"
         >
-          <FontAwesome name="volume-up" size={20} color={textColor} />
+          <FontAwesome name="volume-up" size={20} color={ttsColor} />
         </Pressable>
       </View>
     </View>
@@ -152,7 +169,6 @@ const styles = StyleSheet.create({
   actionText: {
     marginLeft: 4,
     fontSize: 14,
-    // default color; overridden inline when disabled
     color: "#555",
   },
 });

@@ -1,3 +1,4 @@
+// src/screens/SavedQuotesScreen.tsx
 import React from "react";
 import {
   View,
@@ -5,10 +6,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   FlatList,
-  Alert,
 } from "react-native";
 import { useAppDispatch } from "../store/store";
-import { toggleLike } from "../store/slices/quoteMetaSlice";
+import { toggleLike, toggleSave } from "../store/slices/quoteMetaSlice";
 import {
   saveQuoteWithData,
   unsaveQuoteWithData,
@@ -16,9 +16,9 @@ import {
 import Header from "../components/Header";
 import QuoteCard from "../components/Quote";
 import CommentsModal from "../components/CommentsModal";
+import { useSavedQuotesPresenter } from "../presenters/SavedQuotesPresenter";
 import type { Quote } from "../models/ExploreQuotesModel";
 import type { QuoteMeta } from "../store/slices/quoteMetaSlice";
-import { useSavedQuotesPresenter } from "../presenters/SavedQuotesPresenter";
 
 export default function SavedQuotesScreen() {
   const dispatch = useAppDispatch();
@@ -27,7 +27,6 @@ export default function SavedQuotesScreen() {
     onLogoPress,
     quotes,
     isLoading,
-    onUnsave,
     activeQuoteId,
     commentVisible,
     setCommentVisible,
@@ -38,30 +37,20 @@ export default function SavedQuotesScreen() {
   } = useSavedQuotesPresenter();
 
   const handleLike = (id: string) => {
-    if (guest) {
-      Alert.alert("Login required", "Please log in to like quotes.");
-    } else {
-      dispatch(toggleLike(id));
-    }
+    dispatch(toggleLike(id));
   };
 
   const handleSave = (item: Quote, saved: boolean) => {
-    if (guest) {
-      Alert.alert("Login required", "Please log in to save quotes.");
-      return;
+    dispatch(toggleSave(item.id));
+    if (saved) {
+      dispatch(unsaveQuoteWithData(item.id));
+    } else {
+      dispatch(saveQuoteWithData(item));
     }
-    dispatch(toggleLike(item.id));
-    saved
-      ? dispatch(unsaveQuoteWithData(item.id))
-      : dispatch(saveQuoteWithData(item));
   };
 
   const handleComment = (id: string) => {
-    if (guest) {
-      Alert.alert("Login required", "Please log in to comment.");
-    } else {
-      showComments(id);
-    }
+    showComments(id);
   };
 
   let content: React.ReactNode;
@@ -91,6 +80,7 @@ export default function SavedQuotesScreen() {
               <QuoteCard
                 quote={item.content}
                 author={item.author}
+                isAuth={!guest}
                 liked={liked}
                 saved={saved}
                 likeCount={meta.likeCount}
@@ -98,7 +88,6 @@ export default function SavedQuotesScreen() {
                 onLike={() => handleLike(item.id)}
                 onComment={() => handleComment(item.id)}
                 onSave={() => handleSave(item, saved)}
-                disabled={guest}
               />
             </View>
           );

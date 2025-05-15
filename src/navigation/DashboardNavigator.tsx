@@ -25,18 +25,19 @@ export default function DashboardNavigator() {
   const dispatch = useDispatch();
   const isAuth = useSelector((s: RootState) => Boolean(s.auth.user));
 
-  const requireLogin = () =>
-    Alert.alert(
-      "Authentication Required",
-      "You need to log in to access this.",
-      [
-        { text: "Cancel", style: "cancel" },
+  const requireLogin = () => {
+    const title = "Authentication Required";
+    const message = "You need to log in to access this.";
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      window.alert(`${title}\n\n${message}`);
+    } else {
+      Alert.alert(title, message, [
         {
-          text: "Login",
-          onPress: () => dispatch(setGuest(false)),
+          text: "OK",
         },
-      ]
-    );
+      ]);
+    }
+  };
 
   function screenOptions(routeName: string) {
     return {

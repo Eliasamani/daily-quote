@@ -4,16 +4,11 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   FlatList,
   StyleSheet,
-  Alert,
-  Platform,
-  ToastAndroid,
-  Pressable,
 } from "react-native";
-
 import CheckBox from "expo-checkbox";
 import { Picker } from "@react-native-picker/picker";
 import { useSelector } from "react-redux";
@@ -61,41 +56,17 @@ export default function ExploreQuotesScreen() {
     null
   );
 
-  // Helper to prompt login
-  const requireLogin = (action: string) => {
-    const msg = `Please log in to ${action}.`;
-    if (Platform.OS === "android") {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert("Login required", msg, [{ text: "OK" }]);
-    }
-  };
-
-  // ——— Handlers pulled out of nested ternaries ———
+  // Handlers no longer require guest-check here; QuoteCard handles it
   const handleLikePress = (id: string) => {
-    if (guest) {
-      requireLogin("like quotes");
-    } else {
-      dispatch(toggleLike(id));
-    }
+    dispatch(toggleLike(id));
   };
 
   const handleCommentPress = (id: string) => {
-    if (guest) {
-      requireLogin("comment on quotes");
-    } else {
-      setCommentModalQuoteId(id);
-    }
+    setCommentModalQuoteId(id);
   };
 
   const handleSavePress = (item: Quote, alreadySaved: boolean) => {
-    if (guest) {
-      requireLogin("save quotes");
-      return;
-    }
-    // Toggle public metadata
     dispatch(toggleSave(item.id));
-    // Snapshot or delete full-data
     if (!alreadySaved) {
       dispatch(saveQuoteWithData(item));
     } else {
@@ -103,7 +74,6 @@ export default function ExploreQuotesScreen() {
     }
   };
 
-  // Ensure metadata is loaded
   useEffect(() => {
     quotes.forEach((q) => {
       if (!metaEntities[q.id]) {
@@ -187,12 +157,12 @@ export default function ExploreQuotesScreen() {
               };
               const liked = uid ? m.likedBy.includes(uid) : false;
               const saved = uid ? m.savedBy.includes(uid) : false;
-
               return (
                 <View style={styles.cardWrapper}>
                   <QuoteCard
                     quote={item.content}
                     author={item.author}
+                    isAuth={!guest}
                     liked={liked}
                     saved={saved}
                     likeCount={m.likeCount}
@@ -200,7 +170,6 @@ export default function ExploreQuotesScreen() {
                     onLike={() => handleLikePress(item.id)}
                     onComment={() => handleCommentPress(item.id)}
                     onSave={() => handleSavePress(item, saved)}
-                    disabled={guest}
                   />
                 </View>
               );
@@ -279,12 +248,6 @@ const styles = StyleSheet.create({
   },
   label: { marginRight: 8 },
   picker: { flex: 1, height: 40 },
-  to: { marginHorizontal: 4 },
-  randomQuote: {
-    marginRight: 12,
-    color: "blue",
-    textDecorationLine: "underline",
-  },
   loader: { marginTop: 30 },
   emptyText: { textAlign: "center", marginTop: 30, color: "#666" },
   cardWrapper: { marginBottom: 8 },
