@@ -1,4 +1,3 @@
-// src/screens/ExploreQuotesScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -8,6 +7,8 @@ import {
   ActivityIndicator,
   FlatList,
   StyleSheet,
+  Platform,
+  Alert,
 } from "react-native";
 import CheckBox from "expo-checkbox";
 import { Picker } from "@react-native-picker/picker";
@@ -25,6 +26,7 @@ import {
 import Header from "../components/Header";
 import QuoteCard from "../components/Quote";
 import CommentsModal from "../components/CommentsModal";
+import AuthRequiredModal from "../components/AuthRequiredModal";
 import { useExploreQuotesPresenter } from "../presenters/ExploreQuotesPresenter";
 import type { Quote } from "../models/ExploreQuotesModel";
 
@@ -55,17 +57,39 @@ export default function ExploreQuotesScreen() {
   const [commentModalQuoteId, setCommentModalQuoteId] = useState<string | null>(
     null
   );
+  const [loginModalVisible, setLoginModalVisible] = useState(false);
 
-  // Handlers no longer require guest-check here; QuoteCard handles it
+  const requireLogin = () => {
+    if (Platform.OS === "web") {
+      setLoginModalVisible(true);
+    } else {
+      Alert.alert("Login required", "Please log in to use this feature.", [
+        { text: "OK" },
+      ]);
+    }
+  };
+
   const handleLikePress = (id: string) => {
-    dispatch(toggleLike(id));
+    if (guest) {
+      requireLogin();
+    } else {
+      dispatch(toggleLike(id));
+    }
   };
 
   const handleCommentPress = (id: string) => {
-    setCommentModalQuoteId(id);
+    if (guest) {
+      requireLogin();
+    } else {
+      setCommentModalQuoteId(id);
+    }
   };
 
   const handleSavePress = (item: Quote, alreadySaved: boolean) => {
+    if (guest) {
+      requireLogin();
+      return;
+    }
     dispatch(toggleSave(item.id));
     if (!alreadySaved) {
       dispatch(saveQuoteWithData(item));
@@ -185,6 +209,11 @@ export default function ExploreQuotesScreen() {
           />
         )}
       </View>
+
+      <AuthRequiredModal
+        visible={loginModalVisible}
+        onClose={() => setLoginModalVisible(false)}
+      />
     </View>
   );
 }

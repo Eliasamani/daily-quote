@@ -1,5 +1,5 @@
 // src/components/Quote.tsx
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { speakQuote } from "../utils/tts";
+import AuthRequiredModal from "./AuthRequiredModal";
 
 export interface QuoteCardProps {
   quote: string;
@@ -38,14 +39,15 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
   onComment,
   onSave,
 }) => {
+  const [loginModalVisible, setLoginModalVisible] = useState(false);
   const hitSlopArea = { top: 8, bottom: 8, left: 8, right: 8 };
 
   const requireLogin = (action: string) => {
     const msg = `Please log in to ${action}.`;
     if (Platform.OS === "android") {
       ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else if (Platform.OS === "web" && typeof window !== "undefined") {
-      window.alert(msg);
+    } else if (Platform.OS === "web") {
+      setLoginModalVisible(true);
     } else {
       Alert.alert("Login required", msg, [{ text: "OK" }]);
     }
@@ -68,66 +70,72 @@ const QuoteCard: React.FC<QuoteCardProps> = ({
   const handleSpeak = () => speakQuote(`“${quote}” — ${author}`);
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.quoteText} accessibilityRole="text">
-        “{quote}”
-      </Text>
-      <Text style={styles.authorText} accessibilityRole="text">
-        — {author}
-      </Text>
-      <View style={styles.actions}>
-        <Pressable
-          onPress={handleLike}
-          hitSlop={hitSlopArea}
-          accessibilityRole="button"
-          accessibilityLabel={`${likeCount} likes`}
-        >
-          <View style={styles.actionButton}>
+    <>
+      <View style={styles.card}>
+        <Text style={styles.quoteText} accessibilityRole="text">
+          “{quote}”
+        </Text>
+        <Text style={styles.authorText} accessibilityRole="text">
+          — {author}
+        </Text>
+        <View style={styles.actions}>
+          <Pressable
+            onPress={handleLike}
+            hitSlop={hitSlopArea}
+            accessibilityRole="button"
+            accessibilityLabel={`${likeCount} likes`}
+          >
+            <View style={styles.actionButton}>
+              <FontAwesome
+                name={liked ? "heart" : "heart-o"}
+                size={20}
+                color={heartColor}
+              />
+              <Text style={[styles.actionText, { color: countColor }]}>
+                {likeCount}
+              </Text>
+            </View>
+          </Pressable>
+          <Pressable
+            onPress={handleComment}
+            hitSlop={hitSlopArea}
+            accessibilityRole="button"
+            accessibilityLabel={`${commentCount} comments`}
+          >
+            <View style={styles.actionButton}>
+              <FontAwesome name="comment-o" size={20} color={commentColor} />
+              <Text style={[styles.actionText, { color: countColor }]}>
+                {commentCount}
+              </Text>
+            </View>
+          </Pressable>
+          <Pressable
+            onPress={handleSave}
+            hitSlop={hitSlopArea}
+            accessibilityRole="button"
+            accessibilityLabel={saved ? "Saved" : "Save"}
+          >
             <FontAwesome
-              name={liked ? "heart" : "heart-o"}
+              name={saved ? "bookmark" : "bookmark-o"}
               size={20}
-              color={heartColor}
+              color={bookmarkColor}
             />
-            <Text style={[styles.actionText, { color: countColor }]}>
-              {likeCount}
-            </Text>
-          </View>
-        </Pressable>
-        <Pressable
-          onPress={handleComment}
-          hitSlop={hitSlopArea}
-          accessibilityRole="button"
-          accessibilityLabel={`${commentCount} comments`}
-        >
-          <View style={styles.actionButton}>
-            <FontAwesome name="comment-o" size={20} color={commentColor} />
-            <Text style={[styles.actionText, { color: countColor }]}>
-              {commentCount}
-            </Text>
-          </View>
-        </Pressable>
-        <Pressable
-          onPress={handleSave}
-          hitSlop={hitSlopArea}
-          accessibilityRole="button"
-          accessibilityLabel={saved ? "Saved" : "Save"}
-        >
-          <FontAwesome
-            name={saved ? "bookmark" : "bookmark-o"}
-            size={20}
-            color={bookmarkColor}
-          />
-        </Pressable>
-        <Pressable
-          onPress={handleSpeak}
-          hitSlop={hitSlopArea}
-          accessibilityRole="button"
-          accessibilityLabel="Read quote aloud"
-        >
-          <FontAwesome name="volume-up" size={20} color={ttsColor} />
-        </Pressable>
+          </Pressable>
+          <Pressable
+            onPress={handleSpeak}
+            hitSlop={hitSlopArea}
+            accessibilityRole="button"
+            accessibilityLabel="Read quote aloud"
+          >
+            <FontAwesome name="volume-up" size={20} color={ttsColor} />
+          </Pressable>
+        </View>
       </View>
-    </View>
+      <AuthRequiredModal
+        visible={loginModalVisible}
+        onClose={() => setLoginModalVisible(false)}
+      />
+    </>
   );
 };
 

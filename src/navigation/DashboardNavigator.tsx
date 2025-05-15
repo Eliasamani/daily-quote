@@ -1,18 +1,10 @@
-// src/navigation/DashboardNavigator.tsx
-import React from "react";
-import {
-  Alert,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-  Text,
-  View,
-} from "react-native";
+import React, { useState } from "react";
+import { Alert, StyleSheet, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { FontAwesome } from "@expo/vector-icons";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../store/store";
-import { setGuest } from "../store/slices/authSlice";
+import AuthRequiredModal from "../components/AuthRequiredModal";
 
 import ExploreQuotesScreen from "../screens/ExploreQuotesScreen";
 import CreateQuotesScreen from "../screens/CreateQuotesScreen";
@@ -24,104 +16,102 @@ const Tab = createBottomTabNavigator();
 export default function DashboardNavigator() {
   const dispatch = useDispatch();
   const isAuth = useSelector((s: RootState) => Boolean(s.auth.user));
+  const [loginModalVisible, setLoginModalVisible] = useState(false);
 
   const requireLogin = () => {
-    const title = "Authentication Required";
-    const message = "You need to log in to access this.";
-    if (Platform.OS === "web" && typeof window !== "undefined") {
-      window.alert(`${title}\n\n${message}`);
+    if (Platform.OS === "web") {
+      setLoginModalVisible(true);
     } else {
-      Alert.alert(title, message, [
-        {
-          text: "OK",
-        },
-      ]);
+      Alert.alert(
+        "Authentication required",
+        "You need to log in to use this feature",
+        [{ text: "OK" }]
+      );
     }
   };
 
-  function screenOptions(routeName: string) {
-    return {
-      tabBarIcon: ({ focused, color, size }: any) => {
-        let name: string;
-        switch (routeName) {
-          case "Explore":
-            name = "search";
-            break;
-          case "Create":
-            name = isAuth ? "plus" : "lock";
-            break;
-          case "Saved":
-            name = isAuth ? "bookmark" : "lock";
-            break;
-          case "My Quotes":
-            name = isAuth ? "user" : "lock";
-            break;
-          default:
-            name = "circle";
-        }
-        return <FontAwesome name={name} size={size} color={color} />;
-      },
-      tabBarLabel: routeName,
-      tabBarActiveTintColor: "#fff",
-      tabBarInactiveTintColor: "#777",
-      // colored background for active tab:
-      tabBarActiveBackgroundColor: "#6200ee",
-      tabBarInactiveBackgroundColor: "#fff",
-      tabBarStyle: styles.tabBar,
-      headerShown: false,
-    };
-  }
+  const screenOptions = (routeName: string) => ({
+    tabBarIcon: ({ color, size }: any) => {
+      let name: "search" | "plus" | "bookmark" | "user" | "lock" = "search";
+      switch (routeName) {
+        case "Explore":
+          name = "search";
+          break;
+        case "Create":
+          name = isAuth ? "plus" : "lock";
+          break;
+        case "Saved":
+          name = isAuth ? "bookmark" : "lock";
+          break;
+        case "My Quotes":
+          name = isAuth ? "user" : "lock";
+          break;
+      }
+      return <FontAwesome name={name} size={size} color={color} />;
+    },
+    tabBarLabel: routeName,
+    tabBarActiveTintColor: "#fff",
+    tabBarInactiveTintColor: "#777",
+    tabBarActiveBackgroundColor: "#6200ee",
+    tabBarInactiveBackgroundColor: "#fff",
+    tabBarStyle: styles.tabBar,
+    headerShown: false,
+  });
 
   return (
-    <Tab.Navigator initialRouteName="Explore">
-      <Tab.Screen
-        name="Explore"
-        component={ExploreQuotesScreen}
-        options={screenOptions("Explore")}
-      />
+    <>
+      <Tab.Navigator initialRouteName="Explore">
+        <Tab.Screen
+          name="Explore"
+          component={ExploreQuotesScreen}
+          options={screenOptions("Explore")}
+        />
+        <Tab.Screen
+          name="Create"
+          component={CreateQuotesScreen}
+          options={screenOptions("Create")}
+          listeners={{
+            tabPress: (e) => {
+              if (!isAuth) {
+                e.preventDefault();
+                requireLogin();
+              }
+            },
+          }}
+        />
+        <Tab.Screen
+          name="Saved"
+          component={SavedQuotesScreen}
+          options={screenOptions("Saved")}
+          listeners={{
+            tabPress: (e) => {
+              if (!isAuth) {
+                e.preventDefault();
+                requireLogin();
+              }
+            },
+          }}
+        />
+        <Tab.Screen
+          name="My Quotes"
+          component={MyQuotesScreen}
+          options={screenOptions("My Quotes")}
+          listeners={{
+            tabPress: (e) => {
+              if (!isAuth) {
+                e.preventDefault();
+                requireLogin();
+              }
+            },
+          }}
+        />
+      </Tab.Navigator>
 
-      <Tab.Screen
-        name="Create"
-        component={CreateQuotesScreen}
-        options={screenOptions("Create")}
-        listeners={{
-          tabPress: (e) => {
-            if (!isAuth) {
-              e.preventDefault();
-              requireLogin();
-            }
-          },
-        }}
+      <AuthRequiredModal
+        visible={loginModalVisible}
+        onClose={() => setLoginModalVisible(false)}
       />
-
-      <Tab.Screen
-        name="Saved"
-        component={SavedQuotesScreen}
-        options={screenOptions("Saved")}
-        listeners={{
-          tabPress: (e) => {
-            if (!isAuth) {
-              e.preventDefault();
-              requireLogin();
-            }
-          },
-        }}
-      />
-
-      <Tab.Screen
-        name="My Quotes"
-        component={MyQuotesScreen}
-        options={screenOptions("My Quotes")}
-        listeners={{
-          tabPress: (e) => {
-            if (!isAuth) {
-              e.preventDefault();
-              requireLogin();
-            }
-          },
-        }}
-      />
-    </Tab.Navigator>
+    </>
   );
 }
 
