@@ -14,6 +14,7 @@ import {
 import CheckBox from "expo-checkbox";
 import { Picker } from "@react-native-picker/picker";
 import { useAppDispatch, useAppSelector } from "../store/store";
+import type { RootState } from "../store/store";
 import {
   fetchQuoteMeta,
   toggleLike,
@@ -31,7 +32,6 @@ export default function ExploreQuotesScreen() {
   const dispatch = useAppDispatch();
   const {
     guest,
-    uid,
     onAuthButtonPress,
     onLogoPress,
     search,
@@ -47,8 +47,13 @@ export default function ExploreQuotesScreen() {
     toggleSearchByAuthor,
   } = useExploreQuotesPresenter();
 
-  const metaEntities = useAppSelector((s) => s.quoteMeta.entities);
+  // Pull metadata and auth uid from Redux
+  const metaEntities = useAppSelector(
+    (state: RootState) => state.quoteMeta.entities
+  );
+  const uid = useAppSelector((state: RootState) => state.auth.user?.uid);
 
+  // Local UI state
   const [commentModalQuoteId, setCommentModalQuoteId] = useState<string | null>(
     null
   );
@@ -64,12 +69,14 @@ export default function ExploreQuotesScreen() {
     }
   };
 
+  // Handlers
   const handleLikePress = (id: string) => {
     if (guest) {
       requireLogin();
-    } else {
-      dispatch(toggleLike({ id, userId: uid }));
+      return;
     }
+    if (!uid) return;
+    dispatch(toggleLike({ id, userId: uid }));
   };
 
   const handleCommentPress = (id: string) => {
@@ -85,23 +92,25 @@ export default function ExploreQuotesScreen() {
       requireLogin();
       return;
     }
-    // first toggle in-memory meta
+    if (!uid) return;
+    // 1) update local metadata
     dispatch(toggleSave({ id: item.id, userId: uid }));
-    // then persist
-    if (!alreadySaved) {
-      dispatch(saveQuote(item));
-    } else {
+    // 2) persist change to Firestore
+    if (alreadySaved) {
       dispatch(unsaveQuote(item.id));
+    } else {
+      dispatch(saveQuote(item));
     }
   };
 
+  // Fetch metadata for any newly-loaded quotes
   useEffect(() => {
     quotes.forEach((q) => {
       if (!metaEntities[q.id]) {
         dispatch(fetchQuoteMeta(q.id));
       }
     });
-  }, [quotes, metaEntities, dispatch]);
+  }, [quotes, dispatch]);
 
   return (
     <View style={styles.container}>
@@ -169,15 +178,25 @@ export default function ExploreQuotesScreen() {
               </Text>
             }
             renderItem={({ item }) => {
-              const m = metaEntities[item.id] || {
+              // Always fall back to a safe object
+              const m = metaEntities[item.id] ?? {
                 id: item.id,
                 likeCount: 0,
                 likedBy: [],
                 commentCount: 0,
                 savedBy: [],
               };
-              const liked = uid ? m.likedBy.includes(uid) : false;
-              const saved = uid ? m.savedBy.includes(uid) : false;
+
+              // Safe includes: only when arrays exist and uid is set
+              const liked =
+                !!uid && Array.isArray(m.likedBy)
+                  ? m.likedBy.includes(uid)
+                  : false;
+              const saved =
+                !!uid && Array.isArray(m.savedBy)
+                  ? m.savedBy.includes(uid)
+                  : false;
+
               return (
                 <View style={styles.cardWrapper}>
                   <QuoteCard
@@ -225,20 +244,14 @@ const styles = StyleSheet.create({
     minWidth: 175,
     marginLeft: "auto",
   },
-  checkbox: {
-    width: 20,
-    height: 20,
-  },
+  checkbox: { width: 20, height: 20 },
   checker: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
     justifyContent: "flex-end",
   },
-  checkboxLabel: {
-    marginRight: 8,
-    fontSize: 14,
-  },
+  checkboxLabel: { marginRight: 8, fontSize: 14 },
   searchButton: {
     backgroundColor: "#4CAF50",
     paddingVertical: 10,

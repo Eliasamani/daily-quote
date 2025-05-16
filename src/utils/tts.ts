@@ -1,24 +1,30 @@
 import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk";
-import { SPEECH_KEY, SPEECH_REGION } from '@env';
+import { EXPO_PUBLIC_SPEECH_KEY, EXPO_PUBLIC_SPEECH_REGION } from "@env";
 
-const speechKey = SPEECH_KEY;
-const serviceRegion = SPEECH_REGION; 
+const speechKey = EXPO_PUBLIC_SPEECH_KEY;
+const serviceRegion = EXPO_PUBLIC_SPEECH_REGION;
 
 export const speakQuote = (text: string) => {
-  const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(speechKey, serviceRegion);
+  const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
+    speechKey,
+    serviceRegion
+  );
   speechConfig.speechSynthesisVoiceName = "en-IN-RehaanNeural";
   const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
-  const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
+  const synthesizer = new SpeechSDK.SpeechSynthesizer(
+    speechConfig,
+    audioConfig
+  );
 
   synthesizer.speakTextAsync(
     text,
-    result => {
+    (result) => {
       if (result.reason !== SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
         console.error("Speech synthesis failed:", result.errorDetails);
       }
       synthesizer.close();
     },
-    error => {
+    (error) => {
       console.error("Speech synthesis error:", error);
       synthesizer.close();
     }
