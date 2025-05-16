@@ -1,42 +1,39 @@
 // src/presenters/ExploreQuotesPresenter.ts
 import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../store/store";
+import { useAppDispatch, useAppSelector } from "../store/store";
 import { logoutUser, setGuest } from "../store/slices/authSlice";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { ExploreQuotesModel, Quote } from "../models/ExploreQuotesModel";
-import { Tag } from "../store/slices/quote";
+import { Tag } from "../store/slices/quoteMetaSlice";
 
 type DashboardStackParamList = {
   ExploreQuotes: undefined;
 };
 
 export function useExploreQuotesPresenter() {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const navigation =
     useNavigation<
       StackNavigationProp<DashboardStackParamList, "ExploreQuotes">
     >();
-  const { guest } = useSelector((state: RootState) => state.auth);
-  
+  const { guest, user } = useAppSelector((state) => state.auth);
+  const uid = user?.uid ?? "";
+
   // Quote search state
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
-  const [search, setSearch] = useState('');
-  const [genre, setGenre] = useState('');
-  const [minLength, setMinLength] = useState('');
-  const [maxLength, setMaxLength] = useState('');
+  const [search, setSearch] = useState("");
+  const [genre, setGenre] = useState("");
+  const [minLength, setMinLength] = useState("");
+  const [maxLength, setMaxLength] = useState("");
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
-  // Add search by author state
   const [searchByAuthor, setSearchByAuthor] = useState(false);
-  
-  // Handle toggling search by author and clear search input only when going from author to regular search
+
   const toggleSearchByAuthor = (value: boolean) => {
-    // If turning OFF author search (going from author search to regular search), clear the input
-    if (searchByAuthor === true && value === false) {
-      setSearch('');
+    if (searchByAuthor && !value) {
+      setSearch("");
     }
     setSearchByAuthor(value);
   };
@@ -54,7 +51,7 @@ export function useExploreQuotesPresenter() {
   const onSelectQuote = (quote: Quote) => {
     setSelectedQuote(quote);
   };
-  
+
   async function fetchTags() {
     try {
       const allTags = await ExploreQuotesModel.getTags();
@@ -68,7 +65,7 @@ export function useExploreQuotesPresenter() {
     setIsLoading(true);
     try {
       const result = await ExploreQuotesModel.getQuotes();
-      setQuotes(result); // <- now the array of Quote
+      setQuotes(result);
     } catch (err) {
       console.error("Error fetching initial quotes:", err);
     } finally {
@@ -80,7 +77,6 @@ export function useExploreQuotesPresenter() {
     setIsLoading(true);
     try {
       const params = {
-        // Use search as either query or author based on checkbox state
         query: searchByAuthor ? undefined : search,
         author: searchByAuthor ? search : undefined,
         tag: genre,
@@ -99,10 +95,7 @@ export function useExploreQuotesPresenter() {
   async function onRandomQuotePress() {
     setIsLoading(true);
     try {
-      const rand = await ExploreQuotesModel.getRandomQuote({ 
-        tag: genre // Use the existing genre state for tag filtering
-      });
-      
+      const rand = await ExploreQuotesModel.getRandomQuote({ tag: genre });
       setQuotes(rand ? [rand] : []);
     } catch (err) {
       console.error("Error fetching random quote:", err);
@@ -113,6 +106,7 @@ export function useExploreQuotesPresenter() {
 
   return {
     guest,
+    uid,
     onAuthButtonPress,
     onLogoPress,
     search,

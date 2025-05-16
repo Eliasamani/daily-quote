@@ -1,3 +1,4 @@
+// src/store/slices/authSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { auth } from "../../config/firebase";
 import {
@@ -5,9 +6,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { db } from "../../config/firebase";
 
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (
@@ -31,20 +30,20 @@ export const loginUser = createAsyncThunk(
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (
-    { email, password, username }: { email: string; password: string; username: string },
+    {
+      email,
+      password,
+      username,
+    }: { email: string; password: string; username: string },
     { rejectWithValue }
   ) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-    
-      await setDoc(doc(db, "users", user.uid), {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
         email,
-        username,
-        createdAt: serverTimestamp(),
-      });
-
+        password
+      );
+      const user = userCredential.user;
       return { uid: user.uid, email: user.email, username };
     } catch (error: any) {
       return rejectWithValue(error.message);
@@ -64,11 +63,10 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
-
 interface AuthUser {
   uid: string;
   email: string | null;
-  username?: string; 
+  username?: string;
 }
 
 interface AuthState {
@@ -78,7 +76,7 @@ interface AuthState {
   guest: boolean;
 }
 
-const initialState: AuthState = {
+const initialAuthState: AuthState = {
   user: null,
   loading: false,
   error: null,
@@ -87,14 +85,11 @@ const initialState: AuthState = {
 
 const authSlice = createSlice({
   name: "auth",
-  initialState,
+  initialState: initialAuthState,
   reducers: {
     setUser(state, action) {
       state.user = action.payload;
-      // Reset guest flag when a real user logs in
-      if (action.payload) {
-        state.guest = false;
-      }
+      if (action.payload) state.guest = false;
     },
     setGuest(state, action) {
       state.guest = action.payload;

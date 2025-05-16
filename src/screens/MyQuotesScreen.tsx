@@ -1,12 +1,15 @@
 // src/screens/MyQuotesScreen.tsx
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
-import { useAppDispatch } from "../store/store";
-import { toggleLike, toggleSave } from "../store/slices/quoteMetaSlice";
 import {
-  saveQuoteWithData,
-  unsaveQuoteWithData,
-} from "../store/slices/savedQuotesSlice";
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  FlatList,
+} from "react-native";
+import { useAppDispatch, useAppSelector } from "../store/store";
+import { toggleLike, toggleSave } from "../store/slices/quoteMetaSlice";
+import { saveQuote, unsaveQuote } from "../store/slices/savedQuotesSlice";
 import Header from "../components/Header";
 import QuoteCard from "../components/Quote";
 import CommentsModal from "../components/CommentsModal";
@@ -30,15 +33,19 @@ export default function MyQuotesScreen() {
   const [activeQuoteId, setActiveQuoteId] = useState<string | null>(null);
 
   const handleLike = (id: string) => {
-    dispatch(toggleLike(id));
+    if (!uid) return;
+    dispatch(toggleLike({ id, userId: uid }));
   };
 
   const handleSave = (item: Quote, saved: boolean) => {
-    dispatch(toggleSave(item.id));
+    if (!uid) return;
+    // update metadata
+    dispatch(toggleSave({ id: item.id, userId: uid }));
+    // write to Firestore
     if (saved) {
-      dispatch(unsaveQuoteWithData(item.id));
+      dispatch(unsaveQuote(item.id));
     } else {
-      dispatch(saveQuoteWithData(item));
+      dispatch(saveQuote(item));
     }
   };
 
@@ -60,7 +67,7 @@ export default function MyQuotesScreen() {
         data={myQuotes}
         keyExtractor={(q: Quote) => q.id}
         renderItem={({ item }) => {
-          const meta: QuoteMeta = metaEntities[item.id] || {
+          const meta: QuoteMeta = metaEntities[item.id] ?? {
             id: item.id,
             likeCount: 0,
             likedBy: [],
@@ -69,6 +76,7 @@ export default function MyQuotesScreen() {
           };
           const liked = uid ? meta.likedBy.includes(uid) : false;
           const saved = uid ? meta.savedBy.includes(uid) : false;
+
           return (
             <View style={styles.cardWrapper}>
               <QuoteCard
@@ -99,11 +107,13 @@ export default function MyQuotesScreen() {
         onAuthButtonPress={onLogout}
       />
       <View style={styles.content}>{content}</View>
-      <CommentsModal
-        quoteId={activeQuoteId!}
-        visible={commentVisible}
-        onClose={() => setCommentVisible(false)}
-      />
+      {activeQuoteId && (
+        <CommentsModal
+          quoteId={activeQuoteId}
+          visible={commentVisible}
+          onClose={() => setCommentVisible(false)}
+        />
+      )}
     </View>
   );
 }

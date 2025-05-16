@@ -9,9 +9,10 @@ import {
   Button,
   StyleSheet,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 
-import { db } from "../config/firebase"; // ← your initialized firebase/app + firestore
+import { db } from "../config/firebase";
 import {
   collection,
   query,
@@ -20,17 +21,20 @@ import {
   QuerySnapshot,
   QueryDocumentSnapshot,
   Timestamp,
+  doc,
+  getDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 
-import { useAppDispatch } from "../store/store";
-import { addComment } from "../store/slices/quoteMetaSlice";
+import { useAppDispatch, useAppSelector } from "../store/store";
+import { addComment as addCommentAction } from "../store/slices/quoteMetaSlice";
 
 export interface Comment {
   id: string;
   userId: string;
+  username?: string;
   text: string;
-  username?: string; 
-  createdAt: Timestamp;
+  createdAt: Timestamp | null;
 }
 
 interface CommentsModalProps {
@@ -44,10 +48,12 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
   visible,
   onClose,
 }) => {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [text, setText] = useState<string>("");
   const dispatch = useAppDispatch();
+  const uid = useAppSelector((s) => s.auth.user?.uid);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [text, setText] = useState("");
 
+  // Listen for comments in Firestore
   useEffect(() => {
     if (!visible) return;
 
@@ -59,7 +65,13 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       (snap: QuerySnapshot) => {
         const list = snap.docs.map((docSnap: QueryDocumentSnapshot) => {
           const data = docSnap.data() as Omit<Comment, "id">;
-          return { id: docSnap.id, ...data };
+          return {
+            id: docSnap.id,
+            userId: data.userId,
+            username: data.username,
+            text: data.text,
+            createdAt: data.createdAt ?? null,
+          };
         });
         setComments(list);
       },
@@ -71,9 +83,38 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
     return () => unsubscribe();
   }, [quoteId, visible]);
 
-  const send = () => {
-    if (!text.trim()) return;
-    dispatch(addComment({ quoteId, text: text.trim() }));
+  const send = async () => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    if (!uid) {
+      Alert.alert("Login required", "You must be logged in to comment.");
+      return;
+    }
+
+    // Fetch username for this uid
+    let username = "Unknown";
+    try {
+      const userDoc = await getDoc(doc(db, "users", uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        if (typeof data.username === "string") {
+          username = data.username;
+        }
+      }
+    } catch (err) {
+      console.warn("Could not fetch username:", err);
+    }
+
+    // Dispatch action; middleware will write to Firestore
+    dispatch(
+      addCommentAction({
+        quoteId,
+        text: trimmed,
+        userId: uid,
+        username,
+      })
+    );
+
     setText("");
   };
 
@@ -99,15 +140,13 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
           <View style={styles.comment}>
             <Text style={styles.commentText}>{item.text}</Text>
             <Text style={styles.commentMeta}>
-  by {item.username || "Unknown"} ·{" "}
-
-              {item.createdAt && item.createdAt.toDate
+              by {item.username} ·{" "}
+              {item.createdAt?.toDate
                 ? item.createdAt.toDate().toLocaleString()
-                : "Sending..."}
+                : "Sending…"}
             </Text>
           </View>
         )}
-        
       />
 
       <View style={styles.inputRow}>
@@ -134,7 +173,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: "bold" },
   close: { color: "blue" },
 
-  // Comments list
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
@@ -149,7 +187,6 @@ const styles = StyleSheet.create({
   commentText: { fontSize: 16 },
   commentMeta: { fontSize: 12, color: "#666" },
 
-  // Input row
   inputRow: {
     flexDirection: "row",
     padding: 16,

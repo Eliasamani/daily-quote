@@ -1,41 +1,27 @@
 // src/store/slices/savedQuotesSlice.ts
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { auth, db } from "../../config/firebase";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { Quote } from "../../models/ExploreQuotesModel";
 
-// Thunk to save full quote data under users/{uid}/savedQuotes/{quote.id}
-export const saveQuoteWithData = createAsyncThunk<void, Quote>(
-  "savedQuotes/saveQuoteWithData",
-  async (quote) => {
-    const uid = auth.currentUser!.uid;
-    const ref = doc(db, "users", uid, "savedQuotes", quote.id);
-    await setDoc(ref, quote);
-  }
-);
+interface SavedQuotesState {
+  entities: Record<string, Quote>;
+}
 
-// Thunk to remove it
-export const unsaveQuoteWithData = createAsyncThunk<void, string>(
-  "savedQuotes/unsaveQuoteWithData",
-  async (quoteId) => {
-    const uid = auth.currentUser!.uid;
-    const ref = doc(db, "users", uid, "savedQuotes", quoteId);
-    await deleteDoc(ref);
-  }
-);
+const initialSavedState: SavedQuotesState = {
+  entities: {},
+};
 
-const slice = createSlice({
+const savedQuotesSlice = createSlice({
   name: "savedQuotes",
-  initialState: {},
-  reducers: {},
-  extraReducers: (builder) =>
-    builder
-      .addCase(saveQuoteWithData.fulfilled, () => {
-        // no local state—we read in real time from Firestore
-      })
-      .addCase(unsaveQuoteWithData.fulfilled, () => {
-        // nothing here either
-      }),
+  initialState: initialSavedState,
+  reducers: {
+    saveQuote(state, action: PayloadAction<Quote>) {
+      state.entities[action.payload.id] = action.payload;
+    },
+    unsaveQuote(state, action: PayloadAction<string>) {
+      delete state.entities[action.payload];
+    },
+  },
 });
 
-export default slice.reducer;
+export const { saveQuote, unsaveQuote } = savedQuotesSlice.actions;
+export default savedQuotesSlice.reducer;

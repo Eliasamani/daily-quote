@@ -7,22 +7,15 @@ import {
   ActivityIndicator,
   FlatList,
 } from "react-native";
-import { useAppDispatch } from "../store/store";
-import { toggleLike, toggleSave } from "../store/slices/quoteMetaSlice";
-import {
-  saveQuoteWithData,
-  unsaveQuoteWithData,
-} from "../store/slices/savedQuotesSlice";
 import Header from "../components/Header";
 import QuoteCard from "../components/Quote";
 import CommentsModal from "../components/CommentsModal";
 import { useSavedQuotesPresenter } from "../presenters/SavedQuotesPresenter";
 import type { Quote } from "../models/ExploreQuotesModel";
-import type { QuoteMeta } from "../store/slices/quoteMetaSlice";
 
 export default function SavedQuotesScreen() {
-  const dispatch = useAppDispatch();
   const {
+    guest,
     onLogout,
     onLogoPress,
     quotes,
@@ -32,26 +25,10 @@ export default function SavedQuotesScreen() {
     setCommentVisible,
     metaEntities,
     uid,
-    guest,
     showComments,
+    onLike,
+    onUnsave,
   } = useSavedQuotesPresenter();
-
-  const handleLike = (id: string) => {
-    dispatch(toggleLike(id));
-  };
-
-  const handleSave = (item: Quote, saved: boolean) => {
-    dispatch(toggleSave(item.id));
-    if (saved) {
-      dispatch(unsaveQuoteWithData(item.id));
-    } else {
-      dispatch(saveQuoteWithData(item));
-    }
-  };
-
-  const handleComment = (id: string) => {
-    showComments(id);
-  };
 
   let content: React.ReactNode;
   if (isLoading) {
@@ -66,7 +43,7 @@ export default function SavedQuotesScreen() {
         data={quotes}
         keyExtractor={(q: Quote) => q.id}
         renderItem={({ item }) => {
-          const meta: QuoteMeta = metaEntities[item.id] || {
+          const meta = metaEntities[item.id] ?? {
             id: item.id,
             likeCount: 0,
             likedBy: [],
@@ -75,6 +52,7 @@ export default function SavedQuotesScreen() {
           };
           const liked = uid ? meta.likedBy.includes(uid) : false;
           const saved = uid ? meta.savedBy.includes(uid) : false;
+
           return (
             <View style={styles.cardWrapper}>
               <QuoteCard
@@ -85,9 +63,9 @@ export default function SavedQuotesScreen() {
                 saved={saved}
                 likeCount={meta.likeCount}
                 commentCount={meta.commentCount}
-                onLike={() => handleLike(item.id)}
-                onComment={() => handleComment(item.id)}
-                onSave={() => handleSave(item, saved)}
+                onLike={() => onLike(item.id)}
+                onComment={() => showComments(item.id)}
+                onSave={() => onUnsave(item.id)}
               />
             </View>
           );

@@ -1,34 +1,32 @@
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../store/store";
+// src/presenters/MyQuotesPresenter.ts
+import { useEffect, useState, useRef } from "react";
+import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { db } from "../config/firebase";
+import { useAppDispatch, useAppSelector } from "../store/store";
 import { logoutUser } from "../store/slices/authSlice";
+import { fetchQuoteMeta, QuoteMeta } from "../store/slices/quoteMetaSlice";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from "@react-navigation/stack";
-import { db } from "../config/firebase";
-import {
-  collection,
-  query,
-  onSnapshot,
-  orderBy,
-  QuerySnapshot,
-  QueryDocumentSnapshot,
-} from "firebase/firestore";
 import type { Quote } from "../models/ExploreQuotesModel";
-import { fetchQuoteMeta, QuoteMeta } from "../store/slices/quoteMetaSlice";
 
 type DashboardStackParamList = { MyQuotes: undefined };
 
 export function useMyQuotesPresenter() {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const navigation =
     useNavigation<StackNavigationProp<DashboardStackParamList, "MyQuotes">>();
-  const uid = useSelector((s: RootState) => s.auth.user?.uid);
-  const guest = useSelector((s: RootState) => s.auth.guest);
+  const uid = useAppSelector((s) => s.auth.user?.uid);
+  const guest = useAppSelector((s) => s.auth.guest);
 
   const [myQuotes, setMyQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const metaEntities = useSelector((s: RootState) => s.quoteMeta.entities);
 
+  // track fetched metadata IDs to avoid refetch loops
+  const fetchedMeta = useRef<Set<string>>(new Set());
+
+  const metaEntities = useAppSelector((s) => s.quoteMeta.entities);
+
+  // Auth/UI handlers
   const onLogout = () => dispatch(logoutUser());
   const onLogoPress = () => navigation.goBack();
 
@@ -39,22 +37,25 @@ export function useMyQuotesPresenter() {
       return;
     }
     setIsLoading(true);
+
     const colRef = collection(db, "users", uid, "createdQuotes");
     const q = query(colRef, orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snap: QuerySnapshot) => {
-      const full = snap.docs.map(
-        (d: QueryDocumentSnapshot) => d.data() as Quote
-      );
-      setMyQuotes(full);
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const list = snap.docs.map((d) => d.data() as Quote);
+      setMyQuotes(list);
       setIsLoading(false);
-      full.forEach((quote: Quote) => {
-        if (!metaEntities[quote.id]) {
+
+      // fetch metadata exactly once per quote
+      list.forEach((quote) => {
+        if (!metaEntities[quote.id] && !fetchedMeta.current.has(quote.id)) {
+          fetchedMeta.current.add(quote.id);
           dispatch(fetchQuoteMeta(quote.id));
         }
       });
     });
+
     return () => unsubscribe();
-  }, [uid, dispatch, metaEntities]);
+  }, [uid, dispatch]); // <— drop metaEntities here
 
   return {
     onLogout,

@@ -1,49 +1,42 @@
 // src/store/slices/createdQuotesSlice.ts
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { auth, db } from "../../config/firebase";
-import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
-import type { Quote } from "../../models/ExploreQuotesModel";
+import { createSlice, nanoid, PayloadAction } from "@reduxjs/toolkit";
 
-/**
- * Create a new quote:
- * - writes to top-level /quotes
- * - also snapshots it under users/{uid}/createdQuotes/{id}
- */
-export const createQuote = createAsyncThunk<
-  void,
-  { content: string; author: string }
->("createdQuotes/createQuote", async ({ content, author }) => {
-  const uid = auth.currentUser!.uid;
+export interface CreatedQuote {
+  id: string;
+  content: string;
+  author: string;
+  createdAt: number;
+}
 
-  // 1) write to /quotes with auto-id
-  const quotesRef = collection(db, "quotes");
-  const newRef = doc(quotesRef);
-  await setDoc(newRef, {
-    content,
-    author,
-    createdBy: uid,
-    createdAt: serverTimestamp(),
-  });
+interface CreatedQuotesState {
+  entities: Record<string, CreatedQuote>;
+}
 
-  // 2) snapshot under users/{uid}/createdQuotes/{newRef.id}
-  const userRef = doc(db, "users", uid, "createdQuotes", newRef.id);
-  await setDoc(userRef, {
-    id: newRef.id,
-    content,
-    author,
-    createdAt: serverTimestamp(),
-  });
-});
+const initialCreatedState: CreatedQuotesState = {
+  entities: {},
+};
 
 const createdQuotesSlice = createSlice({
   name: "createdQuotes",
-  initialState: {},
-  reducers: {},
-  extraReducers: (builder) => {
-    builder.addCase(createQuote.fulfilled, () => {
-      // we rely on the real-time listener in the presenter
-    });
+  initialState: initialCreatedState,
+  reducers: {
+    addQuote: {
+      reducer(state, action: PayloadAction<CreatedQuote>) {
+        state.entities[action.payload.id] = action.payload;
+      },
+      prepare(content: string, author: string) {
+        return {
+          payload: {
+            id: nanoid(),
+            content,
+            author,
+            createdAt: Date.now(),
+          },
+        };
+      },
+    },
   },
 });
 
+export const { addQuote } = createdQuotesSlice.actions;
 export default createdQuotesSlice.reducer;

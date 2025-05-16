@@ -1,3 +1,4 @@
+// src/screens/ExploreQuotesScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -12,17 +13,13 @@ import {
 } from "react-native";
 import CheckBox from "expo-checkbox";
 import { Picker } from "@react-native-picker/picker";
-import { useSelector } from "react-redux";
-import { useAppDispatch, RootState } from "../store/store";
+import { useAppDispatch, useAppSelector } from "../store/store";
 import {
   fetchQuoteMeta,
   toggleLike,
   toggleSave,
 } from "../store/slices/quoteMetaSlice";
-import {
-  saveQuoteWithData,
-  unsaveQuoteWithData,
-} from "../store/slices/savedQuotesSlice";
+import { saveQuote, unsaveQuote } from "../store/slices/savedQuotesSlice";
 import Header from "../components/Header";
 import QuoteCard from "../components/Quote";
 import CommentsModal from "../components/CommentsModal";
@@ -34,6 +31,7 @@ export default function ExploreQuotesScreen() {
   const dispatch = useAppDispatch();
   const {
     guest,
+    uid,
     onAuthButtonPress,
     onLogoPress,
     search,
@@ -49,10 +47,7 @@ export default function ExploreQuotesScreen() {
     toggleSearchByAuthor,
   } = useExploreQuotesPresenter();
 
-  const metaEntities = useSelector(
-    (state: RootState) => state.quoteMeta.entities
-  );
-  const uid = useSelector((state: RootState) => state.auth.user?.uid);
+  const metaEntities = useAppSelector((s) => s.quoteMeta.entities);
 
   const [commentModalQuoteId, setCommentModalQuoteId] = useState<string | null>(
     null
@@ -73,7 +68,7 @@ export default function ExploreQuotesScreen() {
     if (guest) {
       requireLogin();
     } else {
-      dispatch(toggleLike(id));
+      dispatch(toggleLike({ id, userId: uid }));
     }
   };
 
@@ -90,11 +85,13 @@ export default function ExploreQuotesScreen() {
       requireLogin();
       return;
     }
-    dispatch(toggleSave(item.id));
+    // first toggle in-memory meta
+    dispatch(toggleSave({ id: item.id, userId: uid }));
+    // then persist
     if (!alreadySaved) {
-      dispatch(saveQuoteWithData(item));
+      dispatch(saveQuote(item));
     } else {
-      dispatch(unsaveQuoteWithData(item.id));
+      dispatch(unsaveQuote(item.id));
     }
   };
 
