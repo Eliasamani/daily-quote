@@ -92,9 +92,7 @@ export default function ExploreQuotesScreen() {
       requireLogin("save quotes");
       return;
     }
-    // Toggle public metadata
     dispatch(toggleSave(item.id));
-    // Snapshot or delete full-data
     if (!alreadySaved) {
       dispatch(saveQuoteWithData(item));
     } else {
@@ -102,7 +100,6 @@ export default function ExploreQuotesScreen() {
     }
   };
 
-  // Ensure metadata is loaded
   useEffect(() => {
     quotes.forEach((q) => {
       if (!metaEntities[q.id]) {

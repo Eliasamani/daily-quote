@@ -9,9 +9,9 @@ import MainStack from "./src/navigation/MainStack";
 import { store, RootState, AppDispatch } from "./src/store/store";
 import { setUser } from "./src/store/slices/authSlice";
 import CreateQuotesScreen from "./src/screens/CreateQuotesScreen";
-
 const Stack = createStackNavigator();
 
+// This component contains the main navigation logic and now includes our history provider
 const RootNavigator = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user, guest } = useSelector((state: RootState) => state.auth);
@@ -23,19 +23,18 @@ const RootNavigator = () => {
     return unsubscribe;
   }, [dispatch]);
 
-  // User is considered authenticated if a user exists or if guest mode is active.
   const isAuthenticated = Boolean(user) || guest;
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
-          <Stack.Screen name="Main" component={MainStack} />
-        ) : (
-          <Stack.Screen name="Auth" component={AuthNavigator} />
-        )}
-        <Stack.Screen name="CreateQuotes" component={CreateQuotesScreen} />
-      </Stack.Navigator>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {isAuthenticated ? (
+            <Stack.Screen name="Main" component={MainStack} options={{ headerShown: false }} />
+          ) : (
+            <Stack.Screen name="Auth" component={AuthNavigator} />
+          )}
+          <Stack.Screen name="CreateQuotes" component={CreateQuotesScreen} />
+        </Stack.Navigator>
     </NavigationContainer>
   );
 };
