@@ -8,7 +8,6 @@ import {
   onSnapshot,
   collection,
   serverTimestamp,
-  updateDoc,
   increment,
 } from "firebase/firestore";
 import type { AppDispatch } from "./src/store/store";
@@ -26,7 +25,6 @@ interface Quote {
   [key: string]: any;
 }
 
-// Persista skapade quotes under "quotes" collection och under "createdQuotes" subcollection
 export async function persistNewQuote(q: CreatedQuote) {
   const user = auth.currentUser;
   if (!user) throw new Error("Not authenticated");
@@ -41,12 +39,10 @@ export async function persistNewQuote(q: CreatedQuote) {
   });
 }
 
-// Spara en quote under "savedQuotes" för en användare
 export async function saveQuoteToFirestore(uid: string, quote: Quote) {
   await setDoc(doc(db, "users", uid, "savedQuotes", quote.id), quote);
 }
 
-// Ta bort en quote från "savedQuotes" för en användare
 export async function deleteSavedQuoteFromFirestore(
   uid: string,
   quoteId: string
@@ -54,7 +50,6 @@ export async function deleteSavedQuoteFromFirestore(
   await deleteDoc(doc(db, "users", uid, "savedQuotes", quoteId));
 }
 
-// Lika eller unlika en quote
 export async function toggleLikeInFirestore(quoteId: string, userId: string) {
   const ref = doc(db, "quoteMeta", quoteId);
   await runTransaction(db, async (tx) => {
@@ -72,7 +67,6 @@ export async function toggleLikeInFirestore(quoteId: string, userId: string) {
   });
 }
 
-// Toggle save i metadata för en quote
 export async function toggleSaveInFirestore(quoteId: string, userId: string) {
   const ref = doc(db, "quoteMeta", quoteId);
   await runTransaction(db, async (tx) => {
@@ -86,7 +80,6 @@ export async function toggleSaveInFirestore(quoteId: string, userId: string) {
   });
 }
 
-// Lägg till en kommentar i metadata för en quote
 export async function addCommentInFirestore(
   quoteId: string,
   text: string,
@@ -98,12 +91,13 @@ export async function addCommentInFirestore(
     text,
     createdAt: serverTimestamp(),
   });
-  await updateDoc(doc(db, "quoteMeta", quoteId), {
-    commentCount: increment(1),
-  });
+  await setDoc(
+    doc(db, "quoteMeta", quoteId),
+    { commentCount: increment(1) },
+    { merge: true }
+  );
 }
 
-// Hämta metadata för en quote från Firestore
 export function fetchQuoteMetaFromFirestore(
   quoteId: string,
   dispatch: AppDispatch
