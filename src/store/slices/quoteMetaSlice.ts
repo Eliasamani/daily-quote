@@ -1,4 +1,3 @@
-// src/store/slices/quoteMetaSlice.ts
 import { createSlice, createAction, PayloadAction } from "@reduxjs/toolkit";
 
 export interface QuoteMeta {
@@ -9,63 +8,65 @@ export interface QuoteMeta {
   savedBy: string[];
 }
 
+export const fetchQuoteMeta = createAction<string>("quoteMeta/fetchQuoteMeta");
+
 interface QuoteMetaState {
   entities: Record<string, QuoteMeta>;
+  ids: string[];
 }
 
-const initialMetaState: QuoteMetaState = {
+const initialState: QuoteMetaState = {
   entities: {},
+  ids: [],
 };
-
-// Plain action to request fetching metadata
-export const fetchQuoteMeta = createAction<string>("quoteMeta/fetchQuoteMeta");
 
 const quoteMetaSlice = createSlice({
   name: "quoteMeta",
-  initialState: initialMetaState,
+  initialState,
   reducers: {
-    setMeta(state, action: PayloadAction<QuoteMeta>) {
-      state.entities[action.payload.id] = action.payload;
+    setMeta: (state, action: PayloadAction<QuoteMeta>) => {
+      const meta = action.payload;
+      state.entities[meta.id] = meta;
+      if (!state.ids.includes(meta.id)) state.ids.push(meta.id);
     },
-    toggleLike(state, action: PayloadAction<{ id: string; userId: string }>) {
+    toggleLike: (
+      state,
+      action: PayloadAction<{ id: string; userId: string }>
+    ) => {
       const { id, userId } = action.payload;
-      const m = state.entities[id];
-      if (m) {
-        if (m.likedBy.includes(userId)) {
-          m.likedBy = m.likedBy.filter((u) => u !== userId);
-        } else {
-          m.likedBy.unshift(userId);
-        }
-        m.likeCount = m.likedBy.length;
-      }
+      const meta = state.entities[id];
+      if (!meta) return;
+      const idx = meta.likedBy.indexOf(userId);
+      if (idx > -1) meta.likedBy.splice(idx, 1);
+      else meta.likedBy.push(userId);
+      meta.likeCount = meta.likedBy.length;
     },
-    addComment(
+    toggleSave: (
+      state,
+      action: PayloadAction<{ id: string; userId: string }>
+    ) => {
+      const { id, userId } = action.payload;
+      const meta = state.entities[id];
+      if (!meta) return;
+      const idx = meta.savedBy.indexOf(userId);
+      if (idx > -1) meta.savedBy.splice(idx, 1);
+      else meta.savedBy.push(userId);
+    },
+    addComment: (
       state,
       action: PayloadAction<{
         quoteId: string;
-        commentId: string;
         text: string;
         userId: string;
       }>
-    ) {
-      const { quoteId } = action.payload;
-      const m = state.entities[quoteId];
-      if (m) m.commentCount++;
-    },
-    toggleSave(state, action: PayloadAction<{ id: string; userId: string }>) {
-      const { id, userId } = action.payload;
-      const m = state.entities[id];
-      if (m) {
-        if (m.savedBy.includes(userId)) {
-          m.savedBy = m.savedBy.filter((u) => u !== userId);
-        } else {
-          m.savedBy.unshift(userId);
-        }
-      }
+    ) => {
+      const meta = state.entities[action.payload.quoteId];
+      if (!meta) return;
+      meta.commentCount += 1;
     },
   },
 });
 
-export const { setMeta, toggleLike, addComment, toggleSave } =
+export const { setMeta, toggleLike, toggleSave, addComment } =
   quoteMetaSlice.actions;
 export default quoteMetaSlice.reducer;

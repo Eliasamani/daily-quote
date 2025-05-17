@@ -1,3 +1,4 @@
+// src/screens/HomeScreen.tsx
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Header from "../components/Header";

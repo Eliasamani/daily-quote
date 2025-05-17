@@ -1,141 +1,42 @@
 // src/store/slices/authSlice.ts
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { auth } from "../../config/firebase";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-} from "firebase/auth";
-
-export const loginUser = createAsyncThunk(
-  "auth/loginUser",
-  async (
-    { email, password }: { email: string; password: string },
-    { rejectWithValue }
-  ) => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-      return { uid: user.uid, email: user.email };
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const registerUser = createAsyncThunk(
-  "auth/registerUser",
-  async (
-    {
-      email,
-      password,
-      username,
-    }: { email: string; password: string; username: string },
-    { rejectWithValue }
-  ) => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-      return { uid: user.uid, email: user.email, username };
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const logoutUser = createAsyncThunk(
-  "auth/logoutUser",
-  async (_, { rejectWithValue }) => {
-    try {
-      await signOut(auth);
-      return null;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-interface AuthUser {
-  uid: string;
-  email: string | null;
-  username?: string;
-}
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface AuthState {
-  user: AuthUser | null;
-  loading: boolean;
-  error: string | null;
+  user: { uid: string; email: string | null } | null;
   guest: boolean;
 }
 
-const initialAuthState: AuthState = {
+const initialState: AuthState = {
   user: null,
-  loading: false,
-  error: null,
   guest: false,
 };
 
 const authSlice = createSlice({
   name: "auth",
-  initialState: initialAuthState,
+  initialState,
   reducers: {
-    setUser(state, action) {
-      state.user = action.payload;
-      if (action.payload) state.guest = false;
+    setUser: (
+      state,
+      action: PayloadAction<{ uid: string; email: string | null } | null>
+    ) => {
+      if (action.payload) {
+        state.user = action.payload;
+        state.guest = false;
+      } else {
+        state.user = null;
+        state.guest = true;
+      }
     },
-    setGuest(state, action) {
+
+    setGuest: (state, action: PayloadAction<boolean>) => {
       state.guest = action.payload;
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(loginUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-      .addCase(registerUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-      .addCase(logoutUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.loading = false;
-        state.user = null;
-        state.guest = false;
-      })
-      .addCase(logoutUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
+    logoutUser: (state) => {
+      state.user = null;
+      state.guest = false;
+    },
   },
 });
 
-export const { setUser, setGuest } = authSlice.actions;
+export const { setUser, setGuest, logoutUser } = authSlice.actions;
 export default authSlice.reducer;
