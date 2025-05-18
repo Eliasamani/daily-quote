@@ -1,13 +1,20 @@
-import { Tag } from "../store/slices/quote";
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
+// Define the API base URL
 const API_BASE_URL = "https://api.quotable.kurokeita.dev/api";
 
+// Define types
 export interface Quote {
   id: string;
   content: string;
   author: string;
   genre?: string;
   tags?: string[];
+}
+
+export interface Tag {
+  id: string;
+  name: string;
 }
 
 export interface SearchParams {
@@ -18,8 +25,25 @@ export interface SearchParams {
   maxLength?: number;
 }
 
-export class ExploreQuotesModel {
-  static async getQuotes(limit = 25): Promise<Quote[]> {
+interface ExploreQuotesState {
+  quotes: Quote[];
+  tags: Tag[];
+  loading: boolean;
+  error: string | null;
+}
+
+// Initial state
+const initialState: ExploreQuotesState = {
+  quotes: [],
+  tags: [],
+  loading: false,
+  error: null
+};
+
+// Async thunks
+export const fetchQuotes = createAsyncThunk(
+  'exploreQuotes/fetchQuotes',
+  async (limit: number = 25) => {
     try {
       const response = await fetch(`${API_BASE_URL}/quotes?limit=${limit}`);
       if (!response.ok)
@@ -35,29 +59,36 @@ export class ExploreQuotesModel {
         author: typeof q.author === "string" ? q.author : q.author.name,
         length: q.content.length,
         tags: Array.isArray(q.tags) ? q.tags : [],
+        genre: q.genre || (q.tags?.[0]?.name ?? undefined),
       }));
     } catch (err) {
       console.error("Error fetching quotes:", err);
-      return [];
+      throw err;
     }
   }
+);
 
-  static async getTags(): Promise<Tag[]> {
+export const fetchTags = createAsyncThunk(
+  'exploreQuotes/fetchTags',
+  async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/tags`);
       if (!response.ok) throw new Error("Failed to fetch tags");
       return await response.json();
     } catch (err) {
       console.error("Error fetching tags:", err);
-      return [];
+      throw err;
     }
   }
+);
 
-  static async searchQuotes(params: SearchParams): Promise<Quote[]> {
+export const searchQuotes = createAsyncThunk(
+  'exploreQuotes/searchQuotes',
+  async (params: SearchParams) => {
     try {
       const query = new URLSearchParams();
       if (params.query) query.append("query", params.query);
-      if (params.tag) query.append("tag", params.tag);
+      if (params.tag) query.append("tags", params.tag);
       if (params.author) query.append("author", params.author);
       if (params.minLength) query.append("minLength", params.minLength.toString());
       if (params.maxLength) query.append("maxLength", params.maxLength.toString());
@@ -83,25 +114,23 @@ export class ExploreQuotesModel {
       }));
     } catch (err) {
       console.error("Error searching quotes:", err);
-      return [];
+      throw err;
     }
   }
+);
 
-  static async getRandomQuote(params: { 
-    tag?: string, 
-    author?: string, 
-    genre?: string 
-  } = {}): Promise<Quote | null> {
+export const getRandomQuote = createAsyncThunk(
+  'exploreQuotes/getRandomQuote',
+  async (params: { tag?: string, author?: string, genre?: string } = {}) => {
     try {
-      // Construct query parameters
+
       const query = new URLSearchParams();
       
-      // Add optional filters if provided
+
       if (params.tag) query.append('tags', params.tag);
       if (params.author) query.append('author', params.author);
       if (params.genre) query.append('genre', params.genre);
-      
-      // Always get a random quote
+
       const url = `${API_BASE_URL}/quotes/random?${query.toString()}`;
       
       console.log("Random quote request URL:", url);
@@ -112,40 +141,27 @@ export class ExploreQuotesModel {
       const data = await response.json();
       console.log("Random quote API full response:", data);
   
-      // Extract the quote from the nested structure
+
       const quote = data.quote || data;
       
       return {
         id: quote.id,
         content: quote.content,
-        // Handle author object or string
         author: quote.author?.name || quote.author || "Unknown",
-        // Handle tags array from nested structure
         tags: quote.tags?.map((tag: any) => 
           typeof tag === 'object' ? tag.name : tag
         ) || [],
-        // Include genre if available
-        genre: quote.genre || (quote.tags?.[0]?.name)
       };
     } catch (error) {
       console.error("Error fetching random quote:", error);
-      // Additional detailed logging
-      console.error("Error details:", {
-        name: error instanceof Error ? error.name : 'Unknown Error',
-        message: error instanceof Error ? error.message : 'No message',
-        stack: error instanceof Error ? error.stack : 'No stack trace'
-      });
-      return null;
+      throw error;
     }
-  }  
-
-  static async saveQuote(quoteId: string, token: string): Promise<boolean> {
-    console.log(`Quote ${quoteId} saved to favorites (mock)`);
-    return true;
   }
+);
 
-  /** Fetch a single quote by its ID */
-  static async getQuoteById(id: string): Promise<Quote | null> {
+export const getQuoteById = createAsyncThunk(
+  'exploreQuotes/getQuoteById',
+  async (id: string) => {
     try {
       const url = `${API_BASE_URL}/quotes?id=${encodeURIComponent(id)}`;
       const response = await fetch(url);
@@ -153,7 +169,6 @@ export class ExploreQuotesModel {
         throw new Error(`Failed to fetch quote ${id}: ${response.status}`);
       const data = await response.json();
 
-      // The API returns an object with a `results` array (or raw array)
       const raw: any[] = Array.isArray(data)
         ? data
         : data.results || data.data || [];
@@ -169,7 +184,92 @@ export class ExploreQuotesModel {
       };
     } catch (err) {
       console.error("Error fetching quote by ID:", err);
-      return null;
+      throw err;
     }
   }
-}
+);
+
+const exploreQuotesSlice = createSlice({
+  name: 'exploreQuotes',
+  initialState,
+  reducers: {
+    resetQuotes: (state) => {
+      state.quotes = [];
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchQuotes.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchQuotes.fulfilled, (state, action: PayloadAction<Quote[]>) => {
+        state.loading = false;
+        state.quotes = action.payload;
+      })
+      .addCase(fetchQuotes.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch quotes';
+      })
+      
+      .addCase(fetchTags.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTags.fulfilled, (state, action: PayloadAction<Tag[]>) => {
+        state.loading = false;
+        state.tags = action.payload;
+      })
+      .addCase(fetchTags.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch tags';
+      })
+      
+      .addCase(searchQuotes.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(searchQuotes.fulfilled, (state, action: PayloadAction<Quote[]>) => {
+        state.loading = false;
+        state.quotes = action.payload;
+      })
+      .addCase(searchQuotes.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to search quotes';
+      })
+      
+      .addCase(getRandomQuote.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getRandomQuote.fulfilled, (state, action: PayloadAction<Quote>) => {
+        state.loading = false;
+        state.quotes = action.payload ? [action.payload] : [];
+      })
+      .addCase(getRandomQuote.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch random quote';
+      })
+      
+      .addCase(getQuoteById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getQuoteById.fulfilled, (state, action: PayloadAction<Quote | null>) => {
+        state.loading = false;
+        if (action.payload) {
+          const exists = state.quotes.some(q => q.id === action.payload?.id);
+          if (!exists && action.payload) {
+            state.quotes.push(action.payload);
+          }
+        }
+      })
+      .addCase(getQuoteById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch quote by ID';
+      });
+  },
+});
+
+export const { resetQuotes } = exploreQuotesSlice.actions;
+export default exploreQuotesSlice.reducer;
