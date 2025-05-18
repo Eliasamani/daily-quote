@@ -13,7 +13,6 @@ import { fetchCreatedQuotes } from "./src/store/slices/createdQuotesSlice";
 import AuthNavigator from "./src/navigation/AuthNavigator";
 import MainStack from "./src/navigation/MainStack";
 import CreateQuotesScreen from "./src/screens/CreateQuotesScreen";
-
 const Stack = createStackNavigator();
 
 function RootNavigator() {
@@ -36,14 +35,14 @@ function RootNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
-          <Stack.Screen name="Main" component={MainStack} />
-        ) : (
-          <Stack.Screen name="Auth" component={AuthNavigator} />
-        )}
-        <Stack.Screen name="CreateQuotes" component={CreateQuotesScreen} />
-      </Stack.Navigator>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {isAuthenticated ? (
+            <Stack.Screen name="Main" component={MainStack} options={{ headerShown: false }} />
+          ) : (
+            <Stack.Screen name="Auth" component={AuthNavigator} />
+          )}
+          <Stack.Screen name="CreateQuotes" component={CreateQuotesScreen} />
+        </Stack.Navigator>
     </NavigationContainer>
   );
 }
