@@ -1,8 +1,6 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image, } from "react-native";
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-
 
 interface HeaderProps {
   title: string;
@@ -11,46 +9,42 @@ interface HeaderProps {
   onAuthButtonPress?: () => void;
 }
 
+
+
 export default function Header({
   title,
   onLogoPress,
   authButtonText,
   onAuthButtonPress,
 }: HeaderProps) {
-  const navigation = useNavigation(); // 👈 Access navigation object
-
+  const navigation = useNavigation();
   const buttonStyle = [
     styles.authButton,
     authButtonText === "Logout" && styles.logoutButton,
   ];
 
   return (
-    <View style={styles.headerContainer}>
-      <TouchableOpacity onPress={onLogoPress} style={styles.logoContainer}>
-        <Image source={require("../../assets/logo.png")} style={styles.logo} />
+<View style={styles.headerContainer}>
+  <View style={{ flexDirection: "row", alignItems: "center" }}>
+    {(
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Text style={styles.backButtonText}>←</Text>
       </TouchableOpacity>
+    )}
+    <TouchableOpacity onPress={onLogoPress} style={styles.logoContainer}>
+      <Image source={require("../../assets/logo.png")} style={styles.logo} />
+    </TouchableOpacity>
+  </View>
+  <Text style={styles.title}>{title}</Text>
+  {authButtonText && onAuthButtonPress && (
+    <TouchableOpacity style={buttonStyle} onPress={onAuthButtonPress}>
+      <Text style={styles.authButtonText}>{authButtonText}</Text>
+    </TouchableOpacity>
+  )}
+</View>
 
-      <Text style={styles.title}>{title}</Text>
-
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        {/* 👇 Back Button */}
-        {navigation.canGoBack() && (
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.authButtonText}>Back</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* 👇 Auth Button */}
-        {authButtonText && onAuthButtonPress && (
-          <TouchableOpacity style={buttonStyle} onPress={onAuthButtonPress}>
-            <Text style={styles.authButtonText}>{authButtonText}</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   headerContainer: {
@@ -63,18 +57,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 40,
   },
-  backButton: {
-  backgroundColor: '#ccc',
-  paddingVertical: 6,
-  paddingHorizontal: 12,
-  borderRadius: 4,
-  marginRight: 8,
-},
   logoContainer: {},
   logo: {
     width: 60,
     height: 60,
     resizeMode: "contain",
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 8,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: "#007aff",
   },
   title: {
     fontSize: 20,
