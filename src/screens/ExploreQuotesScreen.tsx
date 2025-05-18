@@ -13,8 +13,7 @@ import {
 } from "react-native";
 import CheckBox from "expo-checkbox";
 import { Picker } from "@react-native-picker/picker";
-import { useAppDispatch, useAppSelector } from "../store/store";
-import type { RootState } from "../store/store";
+import { RootState, useAppDispatch, useAppSelector } from "../store/store";
 import {
   fetchQuoteMeta,
   toggleLike,
@@ -26,7 +25,7 @@ import QuoteCard from "../components/Quote";
 import CommentsModal from "../components/CommentsModal";
 import AuthRequiredModal from "../components/AuthRequiredModal";
 import { useExploreQuotesPresenter } from "../presenters/ExploreQuotesPresenter";
-import type { Quote } from "../models/ExploreQuotesModel";
+import type { Quote } from "../store/slices/exploreQuotesSlice";
 
 export default function ExploreQuotesScreen() {
   const dispatch = useAppDispatch();

@@ -7,6 +7,7 @@ import quoteMetaReducer from "./slices/quoteMetaSlice";
 import savedQuotesReducer from "./slices/savedQuotesSlice";
 import createdQuotesReducer from "./slices/createdQuotesSlice";
 import persistenceListener from "./persistenceMiddleware";
+import exploreQuotesSlice from './slices/exploreQuotesSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     quoteMeta: quoteMetaReducer,
     savedQuotes: savedQuotesReducer,
     createdQuotes: createdQuotesReducer,
+    exploreQuotes: exploreQuotesSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }).prepend(

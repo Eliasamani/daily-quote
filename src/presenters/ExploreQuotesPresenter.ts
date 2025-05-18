@@ -1,11 +1,16 @@
-// src/presenters/ExploreQuotesPresenter.ts
 import { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../store/store";
 import { logoutUser, setGuest } from "../store/slices/authSlice";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { ExploreQuotesModel, Quote } from "../models/ExploreQuotesModel";
-import { Tag } from "../store/slices/quoteMetaSlice";
+import {
+  fetchQuotes,
+  fetchTags,
+  searchQuotes,
+  getRandomQuote,
+  type SearchParams,
+  type Quote,
+} from "../store/slices/exploreQuotesSlice";
 
 type DashboardStackParamList = {
   ExploreQuotes: undefined;
@@ -17,18 +22,21 @@ export function useExploreQuotesPresenter() {
     useNavigation<
       StackNavigationProp<DashboardStackParamList, "ExploreQuotes">
     >();
+    
+
   const { guest, user } = useAppSelector((state) => state.auth);
   const uid = user?.uid ?? "";
+  
 
-  // Quote search state
+  const quotes = useAppSelector((state) => state.exploreQuotes?.quotes || []);
+  const tags = useAppSelector((state) => state.exploreQuotes?.tags || []);
+  const isLoading = useAppSelector((state) => state.exploreQuotes?.loading || false);
+
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [search, setSearch] = useState("");
   const [genre, setGenre] = useState("");
   const [minLength, setMinLength] = useState("");
   const [maxLength, setMaxLength] = useState("");
-  const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [tags, setTags] = useState<Tag[]>([]);
   const [searchByAuthor, setSearchByAuthor] = useState(false);
 
   const toggleSearchByAuthor = (value: boolean) => {
@@ -38,70 +46,35 @@ export function useExploreQuotesPresenter() {
     setSearchByAuthor(value);
   };
 
-  // Authentication handlers
+
   const onLogout = () => dispatch(logoutUser());
   const onAuthButtonPress = guest ? () => dispatch(setGuest(false)) : onLogout;
   const onLogoPress = () => navigation.goBack();
 
   useEffect(() => {
-    fetchTags();
-    fetchInitialQuotes();
-  }, []);
+
+    dispatch(fetchTags());
+    dispatch(fetchQuotes());
+  }, [dispatch]);
 
   const onSelectQuote = (quote: Quote) => {
     setSelectedQuote(quote);
   };
-
-  async function fetchTags() {
-    try {
-      const allTags = await ExploreQuotesModel.getTags();
-      setTags(allTags);
-    } catch (err) {
-      console.error("Error fetching tags:", err);
-    }
+  
+  function onSearchPress() {
+    const params: SearchParams = {
+      query: searchByAuthor ? undefined : search,
+      author: searchByAuthor ? search : undefined,
+      tag: genre,
+      minLength: minLength ? parseInt(minLength, 10) : undefined,
+      maxLength: maxLength ? parseInt(maxLength, 10) : undefined,
+    };
+    
+    dispatch(searchQuotes(params));
   }
 
-  async function fetchInitialQuotes() {
-    setIsLoading(true);
-    try {
-      const result = await ExploreQuotesModel.getQuotes();
-      setQuotes(result);
-    } catch (err) {
-      console.error("Error fetching initial quotes:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function onSearchPress() {
-    setIsLoading(true);
-    try {
-      const params = {
-        query: searchByAuthor ? undefined : search,
-        author: searchByAuthor ? search : undefined,
-        tag: genre,
-        minLength: minLength ? parseInt(minLength, 10) : undefined,
-        maxLength: maxLength ? parseInt(maxLength, 10) : undefined,
-      };
-      const result = await ExploreQuotesModel.searchQuotes(params);
-      setQuotes(result);
-    } catch (err) {
-      console.error("Error searching quotes:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function onRandomQuotePress() {
-    setIsLoading(true);
-    try {
-      const rand = await ExploreQuotesModel.getRandomQuote({ tag: genre });
-      setQuotes(rand ? [rand] : []);
-    } catch (err) {
-      console.error("Error fetching random quote:", err);
-    } finally {
-      setIsLoading(false);
-    }
+  function onRandomQuotePress() {
+    dispatch(getRandomQuote({ tag: genre }));
   }
 
   return {
