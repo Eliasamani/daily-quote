@@ -24,9 +24,11 @@ DailyQuote is a mobile app built with React Native, Firebase, and TypeScript tha
 
 DailyQuote delivers tailored daily quotes based on a user’s mood or interests. It allows users to:
 - Browse random quotes by category (e.g., motivation, love)
-- Save favorite quotes
+- Save and Like quotes
 - Create and submit their own quotes
-- Rate submitted quotes
+- Write comments under quotes
+- Read the quote out loud with TTS.
+- See your saved quotes.
 
 All data is managed via Firebase.
 
