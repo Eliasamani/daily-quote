@@ -1,21 +1,15 @@
-What we have done so far:
-1) Integrated an API into the project.
-2) Users can create new quotes, which are saved in Firebase. This functionality is implemented in the Create Quotes footer.
-3) Users can retrieve quotes based on genre, minimum length, maximum length, or specific search words. This is implemented in the Explore Quotes footer
-4) Established a solid foundation to continue implementing additional functionalities.
-
-What is left to do:
-1) Allow users to save quotes.
-2) Enable users to rate quotes.
-3) Implement text-to-speech functionality.
-4) Additional UI/UX Improvements:
-
-
-
 # DailyQuote
 
 DailyQuote is a mobile app built with React Native, Firebase, and TypeScript that delivers daily inspirational quotes to its users. Whether you need motivation, love quotes, or just a quick dose of inspiration, DailyQuote lets you browse by category, save your favorites, create your own quotes, and rate quotes from other users.
 
+---
+## To run the project locally:
+- Open a linux terminal in a folder.
+- Type: ```git clone https://github.com/Eliasamani/daily-quote.git```
+- Enter the project file: ```cd daily-quote```
+- Run command: ```npm install```
+- Then run ```npx expo start -c```
+- Please note that you need an .env file in the root directory (./daily-quote) containing firebase credentials and an API key for the TTS.
 ---
 
 ## Team Members
