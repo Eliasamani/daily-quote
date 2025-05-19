@@ -88,10 +88,11 @@ The app handles two main data types:
 ---
 
 ## Project File Structure
-
+- Find our third party component below:
 ```plaintext
 .expo
 .firebase
+assets
 .github
 └── workflows
 assets
@@ -103,12 +104,12 @@ src
 │   │   └── quotable.ts
 │   └── index.ts
 ├── components
-│   └── Header.tsx
+│   |── Header.tsx
+│   |── AuthRequiredModal.tsx
+│   |── CommentsModal.tsx
+│   └── Quote.tsx <---- Third Party component from "vector-icons"
 ├── config
 │   └── firebase.ts
-├── models
-│   ├── AuthUser.ts
-│   └── ExploreQuotesModel.ts
 ├── navigation
 │   ├── AuthNavigator.tsx
 │   ├── CreateQuotes.tsx
@@ -134,19 +135,27 @@ src
 ├── store
 │   ├── slices
 │   │   ├── authSlice.ts
-│   │   └── quote.ts
+│   │   ├── createdQuoteSlices.ts
+│   │   ├── exploreQuotesSilce.ts
+│   │   ├── quote.ts
+│   │   ├── quoteMetaSlice.ts
+│   │   └── savedQuoteslice.tsx
+│   ├── persistanceMiddleware.ts
 │   └── store.ts
 └── utils
     ├── GenerateQueryStringFrom.ts
     ├── index.ts
-    └── ProcessFetchReq.ts
+    ├── ProcessFetchReq.ts
+    └── tts.ts
 .env
 .firebaserc
 .gitignore
 app.config.js
 App.tsx
 firebase.json
+firebaseModel.ts
 index.ts
+metro.config.js
 package-lock.json
 package.json
 README.md
