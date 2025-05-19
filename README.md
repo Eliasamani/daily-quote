@@ -30,8 +30,8 @@ DailyQuote delivers tailored daily quotes based on a user’s mood or interests.
 - Read the quote out loud with TTS.
 - See your saved quotes.
 
-All data is managed via Firebase.
 
+All data is managed via Firebase.
 ---
 
 ## Frameworks & Technologies
